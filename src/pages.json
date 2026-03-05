@@ -1,0 +1,38 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "谐音梗图"
+      }
+    },
+    {
+      "path": "pages/rank/rank",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "排行榜"
+      }
+    },
+    {
+      "path": "pages/levels/levels",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的关卡"
+      }
+    },
+    {
+      "path": "pages/play/play",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "游戏"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "谐音梗图",
+    "navigationBarBackgroundColor": "#fff",
+    "backgroundColor": "#f5f0e8"
+  }
+}
