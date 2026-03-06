@@ -2,7 +2,7 @@
   <view class="page">
     <view class="bg-wrap">
       <view class="bg-gradient" />
-      <view class="bg-deco">💬</view>
+      <view class="bg-dots" />
     </view>
 
     <view class="nav-bar">
@@ -123,7 +123,9 @@ function submit() {
   min-height: 100vh;
   position: relative;
   padding-bottom: 80rpx;
-  padding-top: 5vh;
+  padding-top: 12vh;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
   box-sizing: border-box;
 }
 
@@ -135,16 +137,14 @@ function submit() {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #fffef7 0%, #fff8e7 50%, #ffe4c4 100%);
+  background: linear-gradient(165deg, #fff9f3 0%, #ffefe6 50%, #fce8e0 100%);
 }
-.bg-deco {
+.bg-dots {
   position: absolute;
-  bottom: 120rpx;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 48rpx;
-  opacity: 0.4;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(circle at 1px 1px, #e8d5ce 1px, transparent 0);
+  background-size: 40rpx 40rpx;
 }
 
 .nav-bar {
@@ -153,27 +153,30 @@ function submit() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 70rpx 22rpx 22rpx;
+  margin-bottom: 48rpx;
 }
 .nav-btn {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #7ec8e3;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #5c534d;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.1);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-icon {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: bold;
   line-height: 1;
 }
 .nav-title {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #e74c3c;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #3d3530;
+  letter-spacing: 0.06em;
 }
 .nav-placeholder {
   width: 72rpx;
@@ -182,63 +185,69 @@ function submit() {
 .form-wrap {
   position: relative;
   z-index: 2;
-  padding: 24rpx 32rpx;
 }
 .form-item {
-  margin-bottom: 32rpx;
+  margin-bottom: 36rpx;
 }
 .label {
   display: block;
   font-size: 28rpx;
-  color: #666;
-  margin-bottom: 12rpx;
+  color: #6b5b52;
+  margin-bottom: 14rpx;
+  font-weight: 500;
 }
 .required {
-  color: #e74c3c;
+  color: #c04a38;
 }
 .picker-value,
 .input {
-  background: #fff;
-  border: 2rpx solid #e8e8e8;
-  border-radius: 16rpx;
-  padding: 24rpx 28rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
+  border-radius: 20rpx;
+  padding: 26rpx 28rpx;
   font-size: 30rpx;
-  color: #333;
+  color: #3d3530;
+  box-shadow: 0 2rpx 12rpx rgba(180, 120, 100, 0.06);
 }
 .textarea {
   width: 100%;
   min-height: 240rpx;
-  padding: 24rpx 28rpx;
+  padding: 26rpx 28rpx;
   box-sizing: border-box;
-  background: #fff;
-  border: 2rpx solid #e8e8e8;
-  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
+  border-radius: 20rpx;
   font-size: 30rpx;
-  color: #333;
+  color: #3d3530;
+  box-shadow: 0 2rpx 12rpx rgba(180, 120, 100, 0.06);
 }
 .counter {
   display: block;
   text-align: right;
   font-size: 24rpx;
-  color: #999;
-  margin-top: 8rpx;
+  color: #a89f98;
+  margin-top: 10rpx;
 }
 .btn-wrap {
-  margin-top: 48rpx;
+  margin-top: 56rpx;
 }
 .btn-submit {
-  height: 88rpx;
-  line-height: 88rpx;
+  height: 96rpx;
+  line-height: 96rpx;
   text-align: center;
-  background: linear-gradient(145deg, #ff7043, #e64a19);
+  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
   color: #fff;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  font-weight: bold;
-  box-shadow: 0 4rpx 16rpx rgba(230, 74, 25, 0.35);
+  border-radius: 28rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 12rpx 32rpx rgba(192, 74, 56, 0.3), 0 4rpx 0 rgba(160, 50, 40, 0.15);
+}
+.btn-submit:active {
+  transform: scale(0.98);
 }
 .btn-submit.disabled {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 .btn-text {
   color: #fff;

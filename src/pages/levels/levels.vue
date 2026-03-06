@@ -2,7 +2,8 @@
   <view class="page">
     <view class="bg-wrap">
       <view class="bg-gradient" />
-      <view class="bg-deco">☁️ ⭐ ❤️</view>
+      <view class="bg-dots" />
+      <view class="bg-glow" />
     </view>
 
     <view class="nav-bar">
@@ -110,7 +111,7 @@ function loadProgress() {
 onShow(() => loadProgress())
 
 function back() {
-  uni.reLaunch({ url: '/pages/levels/levels' })
+  uni.reLaunch({ url: '/pages/index/index' })
 }
 function feedback() {
   uni.navigateTo({ url: '/pages/feedback/feedback' })
@@ -122,7 +123,9 @@ function feedback() {
   min-height: 100vh;
   position: relative;
   padding-bottom: 160rpx;
-  padding-top: 5vh;
+  padding-top: 12vh;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
   box-sizing: border-box;
 }
 
@@ -134,17 +137,24 @@ function feedback() {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #fffef7 0%, #fff8e7 50%, #ffe4c4 100%);
+  background: linear-gradient(165deg, #fff9f3 0%, #ffefe6 45%, #fce8e0 100%);
 }
-.bg-deco {
+.bg-dots {
   position: absolute;
-  bottom: 120rpx;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 36rpx;
-  opacity: 0.5;
-  letter-spacing: 24rpx;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(circle at 1px 1px, #e8d5ce 1px, transparent 0);
+  background-size: 40rpx 40rpx;
+}
+.bg-glow {
+  position: absolute;
+  top: -15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 45%;
+  background: radial-gradient(ellipse at center, rgba(255, 180, 150, 0.2) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .nav-bar {
@@ -153,134 +163,157 @@ function feedback() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 70rpx 22rpx 22rpx;
+  margin-bottom: 40rpx;
 }
 .nav-btn {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #7ec8e3;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #5c534d;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.1);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-icon {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: bold;
   line-height: 1;
 }
 .nav-title {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #e74c3c;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #3d3530;
+  letter-spacing: 0.06em;
 }
 .btn-feedback {
-  background: #ffb6c1;
-  color: #333;
-  padding: 16rpx 28rpx;
-  border-radius: 24rpx;
   display: flex;
   align-items: center;
   gap: 8rpx;
+  padding: 18rpx 28rpx;
+  background: rgba(255, 255, 255, 0.9);
+  color: #6b5b52;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
 .feedback-icon { font-size: 32rpx; }
-.feedback-text { font-size: 26rpx; }
 
 .grid-wrap {
   position: relative;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  padding: 24rpx 32rpx;
-  gap: 16rpx;
+  gap: 18rpx;
   justify-content: space-between;
 }
 .cell-wrap {
-  width: calc((100% - 4 * 16rpx) / 5);
+  width: calc((100% - 4 * 18rpx) / 5);
   aspect-ratio: 1;
 }
 .cell {
   width: 100%;
   height: 100%;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.15);
 }
 .cell.done {
-  background: linear-gradient(145deg, #81c784, #66bb6a);
+  background: linear-gradient(145deg, #7eb88a 0%, #5a9e6a 100%);
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(102,187,106,0.4);
+  border-color: transparent;
+  box-shadow: 0 6rpx 20rpx rgba(90, 158, 106, 0.35), inset 0 2rpx 0 rgba(255,255,255,0.25);
 }
 .cell.done .cell-star {
   position: absolute;
   top: 8rpx;
   left: 12rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 .cell.done .cell-done {
   position: absolute;
-  bottom: 12rpx;
+  bottom: 10rpx;
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
-  color: #2e7d32;
-  font-size: 24rpx;
+  background: rgba(255,255,255,0.95);
+  color: #2d6b3a;
+  font-size: 22rpx;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .cell.current {
-  background: linear-gradient(145deg, #ff7043, #e64a19);
+  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
   color: #fff;
-  box-shadow: 0 0 24rpx rgba(255,112,67,0.6);
+  border-color: transparent;
+  box-shadow: 0 8rpx 24rpx rgba(192, 74, 56, 0.4), inset 0 2rpx 0 rgba(255,255,255,0.2);
 }
 .cell.locked {
-  background: #e8e8e8;
-  color: #aaa;
+  background: rgba(255, 255, 255, 0.6);
+  color: #b8b0a8;
+  border-color: rgba(200, 160, 140, 0.2);
 }
-.cell.locked .cell-num { color: #999; }
+.cell.locked .cell-num { color: #a89f98; }
 .cell.locked .cell-lock {
   position: absolute;
-  bottom: 12rpx;
+  bottom: 10rpx;
   font-size: 24rpx;
 }
 .cell-num {
-  font-size: 32rpx;
-  font-weight: bold;
+  font-size: 30rpx;
+  font-weight: 700;
 }
 
 .pager {
   position: fixed;
-  bottom: 60rpx;
+  bottom: 56rpx;
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 32rpx;
+  gap: 36rpx;
+  padding: 16rpx 32rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 48rpx;
+  box-shadow: 0 8rpx 28rpx rgba(180, 120, 100, 0.12);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
 .pager-btn {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #7ec8e3;
+  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(192, 74, 56, 0.25);
+}
+.pager-btn:active {
+  transform: scale(0.95);
 }
 .pager-icon {
-  font-size: 40rpx;
+  font-size: 38rpx;
   font-weight: bold;
   line-height: 1;
 }
 .pager-text {
   font-size: 28rpx;
-  color: #666;
+  color: #6b5b52;
+  font-weight: 500;
+  min-width: 72rpx;
+  text-align: center;
 }
 </style>

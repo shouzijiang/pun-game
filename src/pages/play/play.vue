@@ -1,6 +1,10 @@
 <template>
   <view class="page">
-    <view class="bg-soft" />
+    <view class="bg-wrap">
+      <view class="bg-gradient" />
+      <view class="bg-dots" />
+    </view>
+
     <view class="nav-bar">
       <view class="nav-btn" @click="back">
         <text class="nav-icon">‹</text>
@@ -176,16 +180,29 @@ onShareAppMessage(() => ({
 .page {
   min-height: 100vh;
   position: relative;
-  padding-top: 5vh;
-  padding-bottom: 5vh;
+  padding-top: 12vh;
+  padding-bottom: 48rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
   box-sizing: border-box;
 }
 
-.bg-soft {
+.bg-wrap {
   position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, #fffef7 0%, #fff8e7 100%);
   z-index: 0;
+}
+.bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(165deg, #fff9f3 0%, #ffefe6 50%, #fce8e0 100%);
+}
+.bg-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(circle at 1px 1px, #e8d5ce 1px, transparent 0);
+  background-size: 40rpx 40rpx;
 }
 
 .nav-bar {
@@ -194,62 +211,68 @@ onShareAppMessage(() => ({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 80rpx 32rpx 32rpx;
+  margin-bottom: 32rpx;
 }
 .nav-btn {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #7ec8e3;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #5c534d;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.1);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-icon {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: bold;
   line-height: 1;
 }
 .nav-center {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 .nav-title {
   font-size: 36rpx;
-  font-weight: bold;
-  color: #e91e63;
+  font-weight: 700;
+  color: #3d3530;
+  letter-spacing: 0.04em;
 }
-.nav-star { font-size: 32rpx; }
+.nav-star { font-size: 30rpx; }
 .btn-help {
   margin: 0;
-  padding: 14rpx 24rpx;
+  padding: 18rpx 28rpx;
   border: none;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #ffb6c1, #ffc0cb);
-  color: #333;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.9);
+  color: #6b5b52;
   font-size: inherit;
   line-height: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
 .btn-help::after {
   border: none;
 }
-.help-icon { font-size: 28rpx; }
-.help-text { font-size: 26rpx; }
+.help-icon { font-size: 30rpx; }
+.help-text { font-size: 26rpx; font-weight: 500; }
 
 .card {
   position: relative;
   z-index: 2;
-  margin: 0 0 32rpx;
+  margin-bottom: 32rpx;
   border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.08);
-  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(180, 120, 100, 0.1), 0 2rpx 8rpx rgba(0,0,0,0.04);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2rpx solid rgba(200, 160, 140, 0.15);
 }
 .card-inner {
   min-height: 400rpx;
@@ -260,23 +283,25 @@ onShareAppMessage(() => ({
 }
 .puzzle-img {
   width: 110%;
-  height: 650rpx;
+  height: 520rpx;
   border-radius: 16rpx;
 }
 .puzzle-loading {
-  height: 480rpx;
+  height: 420rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #999;
+  color: #a89f98;
 }
 .puzzle-hint {
   margin-top: 24rpx;
+  padding: 0 24rpx 28rpx;
   font-size: 32rpx;
-  color: #333;
+  color: #3d3530;
+  font-weight: 500;
+  text-align: center;
 }
-
 
 .answer-row {
   position: relative;
@@ -284,35 +309,38 @@ onShareAppMessage(() => ({
   display: flex;
   align-items: center;
   justify-content: center;
-  padding:24rpx 32rpx 24rpx;
-  background: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.08);
-  margin: 0 32rpx 32rpx;
+  padding: 28rpx 0;
+  margin-bottom: 32rpx;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
 .answer-slots {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 16rpx;
+  gap: 18rpx;
 }
 .slot {
-  width: 72rpx;
-  height: 72rpx;
-  border: 2rpx dashed #ccc;
-  border-radius: 30rpx;
+  width: 76rpx;
+  height: 76rpx;
+  border: 2rpx dashed rgba(180, 140, 120, 0.4);
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
-  color: #333;
-  background: #fff;
+  font-weight: 600;
+  color: #3d3530;
+  background: rgba(255, 255, 255, 0.8);
 }
 .slot-error {
-  border-color: #e74c3c;
-  color: #e74c3c;
-  background: #ffebee;
+  border-color: #c04a38;
+  border-style: solid;
+  color: #c04a38;
+  background: rgba(255, 220, 210, 0.5);
 }
 .slot-shake {
   animation: slot-shake 0.4s ease-in-out;
@@ -330,25 +358,30 @@ onShareAppMessage(() => ({
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
-  padding: 0 32rpx;
+  gap: 18rpx;
   justify-content: center;
 }
 .char-btn {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(145deg, #7ec8e3, #5eb5d4);
+  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
   color: #fff;
   font-size: 36rpx;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  box-shadow: 0 6rpx 20rpx rgba(192, 74, 56, 0.3), inset 0 2rpx 0 rgba(255,255,255,0.2);
+  border: 2rpx solid transparent;
+}
+.char-btn:active {
+  transform: scale(0.96);
 }
 .char-btn-used {
-  background: #ccc;
-  color: #999;
+  background: rgba(200, 180, 170, 0.5);
+  color: #a89f98;
   box-shadow: none;
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 </style>

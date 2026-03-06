@@ -1,49 +1,39 @@
 <template>
   <view class="page">
-    <!-- 背景渐变 + 装饰 -->
     <view class="bg-wrap">
       <view class="bg-gradient" />
-      <view class="bg-deco">
-        <text class="deco-icon">☁️</text>
-        <text class="deco-icon">⭐</text>
-        <text class="deco-icon">🎮</text>
-      </view>
+      <view class="bg-dots" />
+      <view class="bg-glow" />
     </view>
 
-    <!-- 中央问号 + 标题 -->
-    <view class="hero">
-      <view class="question-mark">?</view>
-      <view class="title-box">
-        <text class="title">谐音梗图</text>
-      </view>
-      <view class="subtitle-box">
-        <text class="subtitle">看图猜词 · 挑战你的想象力</text>
-      </view>
-    </view>
-
-    <!-- 开始游戏 -->
-    <view class="start-wrap">
-      <view class="btn-start" @click="startGame">
-        <text class="btn-start-icon">▶</text>
-        <text class="btn-start-text">开始游戏</text>
-      </view>
-    </view>
-
-    <!-- 右上角入口 -->
     <view class="top-actions">
       <view class="btn-entry" @click="goRank">
         <text class="btn-icon">🏆</text>
-        <text class="btn-text">排行</text>
+        <text class="btn-text">排行榜</text>
       </view>
       <view class="btn-entry btn-levels" @click="goLevels">
-        <text class="btn-icon">📋</text>
-        <text class="btn-text">关卡</text>
+        <text class="btn-icon">📖</text>
+        <text class="btn-text">我的关卡</text>
       </view>
     </view>
 
-    <!-- 参与统计 -->
+    <view class="hero">
+      <view class="hero-badge">
+        <text class="hero-emoji">💡</text>
+      </view>
+      <text class="title">谐音梗图</text>
+      <text class="subtitle">看图猜词，挑战你的脑洞</text>
+    </view>
+
+    <view class="start-wrap">
+      <view class="btn-start" @click="startGame">
+        <text class="btn-start-text">开始游戏</text>
+        <text class="btn-start-arrow">→</text>
+      </view>
+    </view>
+
     <view class="stats">
-      <text class="stats-text">您有 {{ stats.players }} 好友正在参与答题 {{ stats.answers }} 次</text>
+      <text class="stats-text">已有 {{ stats.players }} 位好友在玩 · 累计 {{ stats.answers }} 次答题</text>
     </view>
   </view>
 </template>
@@ -77,7 +67,8 @@ function startGame() {
   align-items: center;
   position: relative;
   overflow: hidden;
-  padding-top: 10vh;
+  padding: 0 40rpx;
+  padding-top: 14vh;
   box-sizing: border-box;
 }
 
@@ -89,48 +80,56 @@ function startGame() {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #ff9a56 0%, #87ceeb 45%, #e8e0d0 100%);
+  background: linear-gradient(165deg, #fff9f3 0%, #ffefe6 35%, #fce8e0 70%, #f5e6e0 100%);
 }
-.bg-deco {
+.bg-dots {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40%;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  padding-bottom: 80rpx;
-  opacity: 0.6;
+  inset: 0;
+  opacity: 0.4;
+  background-image: radial-gradient(circle at 1px 1px, #e8d5ce 1px, transparent 0);
+  background-size: 40rpx 40rpx;
 }
-.deco-icon {
-  font-size: 48rpx;
+.bg-glow {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 180, 150, 0.25) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .top-actions {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 24rpx;
-  align-self: auto;
-  margin: 80rpx 32rpx 0 32rpx;
+  gap: 20rpx;
+  width: 100%;
+  max-width: 520rpx;
+  margin-bottom: 12vh;
 }
 .btn-entry {
-  background: linear-gradient(135deg, #7ec8e3, #9dd5ed);
-  color: #333;
-  padding: 16rpx 28rpx;
-  border-radius: 24rpx;
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
-  width:45%;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 24rpx 28rpx;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 20rpx;
+  color: #5c534d;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 20rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
-.btn-levels {
-  background: linear-gradient(135deg, #ffb6c1, #ffc0cb);
+.btn-entry.btn-levels {
+  color: #6b5b52;
 }
-.btn-icon { font-size: 36rpx; }
-.btn-text { font-size: 28rpx; font-weight: 500; }
+.btn-icon {
+  font-size: 36rpx;
+}
 
 .hero {
   position: relative;
@@ -138,78 +137,74 @@ function startGame() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 60rpx;
+  margin-bottom: 12vh;
 }
-.question-mark {
-  width: 320rpx;
-  height: 320rpx;
-  background: linear-gradient(145deg, #ffd54f, #ff9800);
+.hero-badge {
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
+  background: linear-gradient(145deg, #fff8f0 0%, #ffe4d4 100%);
+  border: 6rpx solid rgba(210, 140, 110, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 200rpx;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 2rpx 4rpx 8rpx rgba(0,0,0,0.2);
-  box-shadow: 0 12rpx 32rpx rgba(255,152,0,0.4);
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 12rpx 40rpx rgba(200, 130, 100, 0.15), inset 0 2rpx 0 rgba(255,255,255,0.8);
 }
-.title-box {
-  // background: #fff;
-  // border: 4rpx solid #e74c3c;
-  // border-radius: 16rpx;
-  // padding: 16rpx 40rpx;
-  // box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.1);
+.hero-emoji {
+  font-size: 80rpx;
 }
 .title {
-  font-size: 128rpx;
-  font-weight: bold;
-  color: rgb(232, 93, 4);
-  text-shadow: rgb(208, 0, 0) 1px 1px 0px, rgb(208, 0, 0) 2px 2px 0px, rgb(208, 0, 0) 3px 3px 0px, rgb(208, 0, 0) 4px 4px 0px, rgb(208, 0, 0) 5px 5px 0px, rgb(208, 0, 0) 6px 6px 0px, rgb(208, 0, 0) 7px 7px 0px, rgba(0, 0, 0, 0.4) 8px 8px 15px;
-  -webkit-text-stroke: 3px rgb(255, 255, 255);
-  letter-spacing: 0.05em;
-}
-.subtitle-box {
-  background: rgba(255,255,255,0.9);
-  border-radius: 24rpx;
-  padding: 12rpx 32rpx;
-  margin-top: 16rpx;
+  font-size: 72rpx;
+  font-weight: 800;
+  color: #3d3530;
+  letter-spacing: 0.12em;
+  margin-bottom: 16rpx;
 }
 .subtitle {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 28rpx;
+  color: #8a7f78;
+  letter-spacing: 0.04em;
 }
 
 .start-wrap {
   position: relative;
   z-index: 2;
-  margin-top: 80rpx;
+  width: 100%;
+  max-width: 480rpx;
 }
 .btn-start {
-  background: linear-gradient(135deg, #ff8c42, #ff6b35);
-  color: #fff;
-  padding: 28rpx 80rpx;
-  border-radius: 48rpx;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255,107,53,0.4);
+  padding: 32rpx 48rpx;
+  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
+  border-radius: 28rpx;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 12rpx 36rpx rgba(192, 74, 56, 0.35), 0 4rpx 0 rgba(160, 50, 40, 0.2);
 }
-.btn-start-icon { font-size: 40rpx; }
-.btn-start-text { font-size: 36rpx; font-weight: 600; }
+.btn-start:active {
+  transform: scale(0.98);
+}
+.btn-start-arrow {
+  font-size: 32rpx;
+  opacity: 0.95;
+}
 
 .stats {
   position: relative;
   z-index: 2;
   margin-top: auto;
-  margin-bottom: 60rpx;
-  padding: 20rpx 40rpx;
-  background: rgba(120,130,150,0.25);
-  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 48rpx;
 }
 .stats-text {
   font-size: 24rpx;
-  color: #555;
+  color: #a89f98;
+  letter-spacing: 0.02em;
 }
 </style>
