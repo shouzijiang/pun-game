@@ -122,4 +122,16 @@ export const api = {
   getLevelProgress() {
     return request({ url: '/pun/level/progress', method: 'GET' })
   },
+
+  /**
+   * 提交意见反馈
+   * @param {Object} data - { type?, content, contact? }
+   */
+  submitFeedback(data) {
+    return request({
+      url: '/pun/feedback/submit',
+      method: 'POST',
+      data,
+    })
+  },
 }

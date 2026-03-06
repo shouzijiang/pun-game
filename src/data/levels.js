@@ -4,7 +4,6 @@ import { request } from '../utils/request'
  * 关卡与题目数据（示例），后续可改为从 https://apaas.aiforce.cloud 接口拉取
  */
 export const LEVELS_PER_PAGE = 40
-export const TOTAL_LEVELS = 253
 
 const STORAGE_CURRENT = 'pun_game_current_level'
 const STORAGE_PASSED = 'pun_game_passed_levels'

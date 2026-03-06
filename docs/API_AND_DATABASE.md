@@ -112,9 +112,20 @@ updated_at      datetime
 
 ---
 
+### 5. 意见反馈
+
+- **POST** `/pun/feedback/submit`
+- **Header**：`Authorization: Bearer <token>`
+- **Body**：`{ "type": "可选 bug|suggest|other", "content": "必填", "contact": "选填" }`
+- **响应**：`{ "code": 200, "data": null }`；失败 400/401 等。
+- 表结构、校验规则与联调说明见 **《FEEDBACK_FEATURE.md》**。
+
+---
+
 ## 四、前端使用说明
 
 - 登录：App 启动时（仅微信小程序）调用 `wechatLogin()`，与 think1-mini-uniapp 一致。
 - 排行榜页：调用 `GET /pun/rank/list`，展示 `list`。
 - 游戏页：填完答案后调用 `POST /pun/answer/submit`，根据 `isCorrect` 与 `feedback` 展示对错、晃动与标红。
 - 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel`、`passedLevels` 与 `totalLevels`；用 `totalLevels` 做总关卡数按 `1..totalLevels` 遍历，“当前关”和“已通过”仍用 `currentLevel` 与 `passedLevels`。
+- 反馈：关卡页点击「反馈」进入反馈页，填写类型/内容/联系方式后调用 `POST /pun/feedback/submit`。

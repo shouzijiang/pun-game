@@ -53,8 +53,8 @@ import { onShow } from '@dcloudio/uni-app'
 import { LEVELS_PER_PAGE, getCurrentLevel, getPassedLevels } from '../../data/levels'
 import { api } from '../../utils/api'
 
-const DEFAULT_TOTAL_LEVELS = 270
-const totalLevels = ref(DEFAULT_TOTAL_LEVELS)
+// 总关卡数仅由接口 GET /pun/level/progress 的 totalLevels 决定
+const totalLevels = ref(0)
 const perPage = LEVELS_PER_PAGE
 const currentPage = ref(1)
 const passedSet = ref(new Set(getPassedLevels()))
@@ -97,7 +97,7 @@ function loadProgress() {
     .then((data) => {
       currentLevel.value = data.currentLevel != null ? data.currentLevel : getCurrentLevel()
       passedSet.value = new Set(Array.isArray(data.passedLevels) ? data.passedLevels : getPassedLevels())
-      if (data.totalLevels != null && data.totalLevels > 0) {
+      if (data.totalLevels != null) {
         totalLevels.value = data.totalLevels
       }
     })
@@ -113,7 +113,7 @@ function back() {
   uni.reLaunch({ url: '/pages/levels/levels' })
 }
 function feedback() {
-  uni.showToast({ title: '感谢反馈', icon: 'none' })
+  uni.navigateTo({ url: '/pages/feedback/feedback' })
 }
 </script>
 

@@ -1,3 +1,3 @@
-// API 基础地址（与 think1 一致，可改为实际后端地址）
-// export const API_BASE_URL = 'https://sofun.online'
-export const API_BASE_URL = 'http://10.3.123.48:9010'
+// API 基础地址：开发时用 .env.development，打包时用 .env.production
+// 仅本机改开发地址可新建 .env.local 写 VITE_API_BASE_URL=xxx（已被 gitignore）
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sofun.online'

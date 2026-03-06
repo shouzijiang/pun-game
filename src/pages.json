@@ -27,6 +27,13 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "游戏"
       }
+    },
+    {
+      "path": "pages/feedback/feedback",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "意见反馈"
+      }
     }
   ],
   "globalStyle": {
