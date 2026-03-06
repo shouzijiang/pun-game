@@ -28,7 +28,7 @@ id              int unsigned   主键自增
 user_id         int unsigned   用户 id，唯一（一用户一条）
 nickname        varchar(64)   冗余，排行展示用
 avatar          varchar(512)   冗余，排行展示用
-max_level       int unsigned   闯到的最高关卡号（1~253）
+max_level       int unsigned   闯到的最高关卡号
 updated_at      datetime       最近一次通过关卡的时间
 ```
 
@@ -105,9 +105,10 @@ updated_at      datetime
 - **GET** `/pun/level/progress`
 - **Header**：`Authorization: Bearer <token>`
 - **响应**：  
-  `{ "code": 200, "data": { "currentLevel": 5, "passedLevels": [1, 2, 3, 4] } }`
+  `{ "code": 200, "data": { "currentLevel": 5, "passedLevels": [1, 2, 3, 4], "totalLevels": 270 } }`
   - `currentLevel`：当前可玩关卡（已通过最大关 + 1）。
   - `passedLevels`：已通过关卡号数组，可有序。
+  - `totalLevels`：总关卡数（当前为 270）；前端按 `1..totalLevels` 遍历展示关卡，已通过仍看 `passedLevels`。
 
 ---
 
@@ -116,4 +117,4 @@ updated_at      datetime
 - 登录：App 启动时（仅微信小程序）调用 `wechatLogin()`，与 think1-mini-uniapp 一致。
 - 排行榜页：调用 `GET /pun/rank/list`，展示 `list`。
 - 游戏页：填完答案后调用 `POST /pun/answer/submit`，根据 `isCorrect` 与 `feedback` 展示对错、晃动与标红。
-- 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel` 与 `passedLevels`，用于“当前关”和“已通过”展示。
+- 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel`、`passedLevels` 与 `totalLevels`；用 `totalLevels` 做总关卡数按 `1..totalLevels` 遍历，“当前关”和“已通过”仍用 `currentLevel` 与 `passedLevels`。

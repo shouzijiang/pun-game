@@ -50,16 +50,17 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { TOTAL_LEVELS, LEVELS_PER_PAGE, getCurrentLevel, getPassedLevels } from '../../data/levels'
+import { LEVELS_PER_PAGE, getCurrentLevel, getPassedLevels } from '../../data/levels'
 import { api } from '../../utils/api'
 
-const totalLevels = TOTAL_LEVELS
+const DEFAULT_TOTAL_LEVELS = 270
+const totalLevels = ref(DEFAULT_TOTAL_LEVELS)
 const perPage = LEVELS_PER_PAGE
 const currentPage = ref(1)
 const passedSet = ref(new Set(getPassedLevels()))
 const currentLevel = ref(getCurrentLevel())
 
-const totalPages = computed(() => Math.ceil(totalLevels / perPage) || 1)
+const totalPages = computed(() => Math.ceil(totalLevels.value / perPage) || 1)
 const currentStart = computed(() => (currentPage.value - 1) * perPage)
 
 function isCompleted(n) {
@@ -96,6 +97,9 @@ function loadProgress() {
     .then((data) => {
       currentLevel.value = data.currentLevel != null ? data.currentLevel : getCurrentLevel()
       passedSet.value = new Set(Array.isArray(data.passedLevels) ? data.passedLevels : getPassedLevels())
+      if (data.totalLevels != null && data.totalLevels > 0) {
+        totalLevels.value = data.totalLevels
+      }
     })
     .catch(() => {
       passedSet.value = new Set(getPassedLevels())

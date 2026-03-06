@@ -64,7 +64,6 @@ function normalizePuzzle(data) {
 
 /**
  * 关卡题目结构：{ level, hintText, wordArray, answerLength, imageUrl, isReviewMode, answer? }
- * 共 253 关，对应 1.json ~ 253.json
  */
 export function getLevelPuzzle(levelNum) {
   const url = `${LEVEL_DATA_BASE}/${levelNum}.json`
