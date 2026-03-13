@@ -134,4 +134,16 @@ export const api = {
       data,
     })
   },
+
+  /**
+   * 更新用户信息（头像/昵称），需登录
+   * @param {Object} data - { nickname?, avatar? } avatar 可为 base64 或 URL，与后端约定
+   */
+  updateUserInfo(data) {
+    return request({
+      url: '/auth/user/update',
+      method: 'POST',
+      data,
+    })
+  },
 }

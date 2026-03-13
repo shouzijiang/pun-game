@@ -283,7 +283,7 @@ onShareAppMessage(() => ({
 }
 .puzzle-img {
   width: 110%;
-  height: 520rpx;
+  height: 650rpx;
   border-radius: 16rpx;
 }
 .puzzle-loading {

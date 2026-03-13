@@ -74,7 +74,17 @@ updated_at      datetime
 
 ---
 
-### 2. 排行榜
+### 2. 更新用户信息（头像/昵称）
+
+- **POST** `/auth/user/update`
+- **Header**：`Authorization: Bearer <token>`
+- **Body**：`{ "nickname": "可选", "avatar": "可选" }`。前端在微信内通过「选择头像」「输入昵称」授权后调用；`avatar` 可能为 base64 或 URL，与后端约定。
+- **响应**：`{ "code": 200, "data": null }`。后端更新用户表及排行榜表冗余字段后返回即可。
+- 前端会在首页完成授权后调用本接口，并同步写入本地 `userInfo`（`uni.setStorageSync('userInfo', ...)`）。
+
+---
+
+### 3. 排行榜
 
 - **GET** `/pun/rank/list?page=1&page_size=20`
 - **Header**：`Authorization: Bearer <token>`（可选，未登录可只返回榜单）
@@ -85,7 +95,7 @@ updated_at      datetime
 
 ---
 
-### 3. 提交答案（确认答案）
+### 4. 提交答案（确认答案）
 
 - **POST** `/pun/answer/submit`
 - **Header**：`Authorization: Bearer <token>`
@@ -100,7 +110,7 @@ updated_at      datetime
 
 ---
 
-### 4. 当前用户关卡进度（历史答题情况）
+### 5. 当前用户关卡进度（历史答题情况）
 
 - **GET** `/pun/level/progress`
 - **Header**：`Authorization: Bearer <token>`
@@ -112,7 +122,7 @@ updated_at      datetime
 
 ---
 
-### 5. 意见反馈
+### 6. 意见反馈
 
 - **POST** `/pun/feedback/submit`
 - **Header**：`Authorization: Bearer <token>`
