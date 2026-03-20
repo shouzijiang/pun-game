@@ -40,15 +40,15 @@
         <text class="counter">{{ content.length }}/500</text>
       </view>
 
-      <view class="form-item">
+      <!-- <view class="form-item">
         <text class="label">联系方式（选填）</text>
         <input
           v-model="contact"
           class="input"
           type="text"
-          placeholder="微信号/手机号，方便我们回复您"
+          placeholder="方便我们回复您"
         />
-      </view>
+      </view> -->
 
       <view class="btn-wrap">
         <view

@@ -34,6 +34,20 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "意见反馈"
       }
+    },
+    {
+      "path": "pages/cocreate/list",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "共创列表"
+      }
+    },
+    {
+      "path": "pages/cocreate/upload",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "上传关卡"
+      }
     }
   ],
   "globalStyle": {

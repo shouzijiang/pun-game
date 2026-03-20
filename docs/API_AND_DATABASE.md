@@ -56,6 +56,29 @@ updated_at      datetime
 
 ---
 
+### 4. 共创关卡表
+
+```text
+表名：pun_game_cocreate
+
+id                  int unsigned   主键自增
+user_id             int unsigned   上传者
+answer              varchar(64)    关卡答案
+answer_length       tinyint        答案字数
+hint_image_prompt   varchar(512)   第一张图提示词（用于 AI 生成提示图）
+answer_explanation  varchar(512)   答案解释（用于 AI 生成猜词图）
+word_array          text           选词 JSON，20 个且含答案
+hint_image_url      varchar(512)   提示图 URL
+answer_image_url    varchar(512)   猜词图 URL
+status              tinyint(1)     0 待审核 1 已通过 2 拒绝
+created_at          datetime
+updated_at          datetime
+```
+
+- 完整表结构、接口与前后端说明见 **《COCREATE_FEATURE.md》**。
+
+---
+
 ## 二、接口约定
 
 - 基础 URL：与前端 `config.js` 中 `API_BASE_URL` 一致（如 `https://sofun.online`）。
@@ -132,6 +155,18 @@ updated_at      datetime
 
 ---
 
+### 7. 共创模块
+
+- **生成选词**：`POST /pun/cocreate/words/generate`，Body `{ "answer": "..." }`，返回 20 个选词（含答案）。
+- **生成图片（AI）**：`POST /pun/cocreate/image/generate`，Body `{ "prompt": "...", "type": "hint"|"answer" }`，返回 `imageUrl`。
+- **提交关卡**：`POST /pun/cocreate/submit`，Body 含 answer、hintImagePrompt、answerExplanation、wordArray、hintImageUrl、answerImageUrl 等。
+- **列表**：`GET /pun/cocreate/list?page=1&page_size=20`。
+- **详情**：`GET /pun/cocreate/detail?id=123`（玩共创时拉题）。
+- **提交共创答案**：`POST /pun/cocreate/answer/submit`，Body `{ "cocreateId": 123, "userAnswer": [...] }`。
+- 表结构、请求/响应明细与前端流程见 **《COCREATE_FEATURE.md》**。
+
+---
+
 ## 四、前端使用说明
 
 - 登录：App 启动时（仅微信小程序）调用 `wechatLogin()`，与 think1-mini-uniapp 一致。
@@ -139,3 +174,4 @@ updated_at      datetime
 - 游戏页：填完答案后调用 `POST /pun/answer/submit`，根据 `isCorrect` 与 `feedback` 展示对错、晃动与标红。
 - 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel`、`passedLevels` 与 `totalLevels`；用 `totalLevels` 做总关卡数按 `1..totalLevels` 遍历，“当前关”和“已通过”仍用 `currentLevel` 与 `passedLevels`。
 - 反馈：关卡页点击「反馈」进入反馈页，填写类型/内容/联系方式后调用 `POST /pun/feedback/submit`。
+- 共创：首页「进入共创」→ 共创列表/上传页；上传页含关卡答案、第一张图提示词、答案解释、生成选词(20)、AI 生成提示图/答案图、提交关卡；玩共创通过 `?cocreateId=123` 进入 play 页，详见 **《COCREATE_FEATURE.md》**。

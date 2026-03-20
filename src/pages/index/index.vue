@@ -44,7 +44,7 @@
           mode="aspectFill"
         />
         <view v-else class="user-avatar user-avatar-placeholder">👤</view>
-        <text class="user-nickname">{{ userInfo?.nickname || '微信用户' }}</text>
+        <text class="user-nickname">{{ userInfo?.nickname || '用户' }}</text>
       </view>
       <!-- #endif -->
     </view>
@@ -70,8 +70,11 @@
 
     <view class="start-wrap">
       <view class="btn-start" @click="startGame">
-        <text class="btn-start-text">开始游戏</text>
+        <text class="btn-start-text">开始游戏(初级)</text>
         <text class="btn-start-arrow">→</text>
+      </view>
+      <view class="btn-cocreate" @click="goCocreate">
+        <text class="btn-cocreate-text">进入共创</text>
       </view>
     </view>
 
@@ -175,10 +178,19 @@ function goRank() {
 function goLevels() {
   uni.navigateTo({ url: '/pages/levels/levels' })
 }
+function goCocreate() {
+  uni.navigateTo({ url: '/pages/cocreate/list' })
+}
 function startGame() {
   const goPlay = (level) => { uni.navigateTo({ url: `/pages/play/play?level=${level}` }) }
   api.getLevelProgress()
-    .then((data) => goPlay(data.currentLevel != null ? data.currentLevel : 1))
+    .then((data) => {
+      if(data.currentLevel >= 270) {
+        uni.showToast({ title: '恭喜您已通关,关卡持续更新中,敬请期待~', icon: 'none' })
+        return
+      }
+      goPlay(data.currentLevel != null ? data.currentLevel : 1)
+    })
     .catch(() => goPlay(getCurrentLevel()))
 }
 </script>
@@ -379,6 +391,9 @@ function startGame() {
   z-index: 2;
   width: 100%;
   max-width: 480rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 .btn-start {
   display: flex;
@@ -393,6 +408,9 @@ function startGame() {
   font-weight: 700;
   letter-spacing: 0.08em;
   box-shadow: 0 12rpx 36rpx rgba(192, 74, 56, 0.35), 0 4rpx 0 rgba(160, 50, 40, 0.2);
+  &.btn-start-2 {
+    background: linear-gradient(145deg, #4a8cd4 0%, #3870c0 100%);
+  }
 }
 .btn-start:active {
   transform: scale(0.98);
@@ -400,6 +418,25 @@ function startGame() {
 .btn-start-arrow {
   font-size: 32rpx;
   opacity: 0.95;
+}
+.btn-cocreate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28rpx 48rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 28rpx;
+  border: 2rpx solid rgba(200, 160, 140, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(180, 120, 100, 0.08);
+}
+.btn-cocreate:active {
+  transform: scale(0.98);
+}
+.btn-cocreate-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #5c534d;
+  letter-spacing: 0.06em;
 }
 
 .stats {

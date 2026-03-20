@@ -146,4 +146,65 @@ export const api = {
       data,
     })
   },
+
+  /** 共创：生成选词（20 个，含答案） */
+  generateCocreateWords(answer) {
+    return request({
+      url: '/pun/cocreate/words/generate',
+      method: 'POST',
+      data: { answer },
+    })
+  },
+
+  /** 共创：AI 生成图片，type 为 hint | answer */
+  generateCocreateImage(prompt, type) {
+    return request({
+      url: '/pun/cocreate/image/generate',
+      method: 'POST',
+      data: { prompt, type },
+    })
+  },
+
+  /** 共创：提交关卡 */
+  submitCocreate(data) {
+    return request({
+      url: '/pun/cocreate/submit',
+      method: 'POST',
+      data,
+    })
+  },
+
+  /** 共创：列表分页 */
+  getCocreateList(params = {}) {
+    return request({
+      url: `/pun/cocreate/list${buildQueryString(params)}`,
+      method: 'GET',
+    })
+  },
+
+  /** 共创：详情（玩某条时拉题） */
+  getCocreateDetail(id) {
+    return request({
+      url: `/pun/cocreate/detail${buildQueryString({ id })}`,
+      method: 'GET',
+    }).then((data) => {
+      if (!data) return null
+      return {
+        imageUrl: data.imageUrl || data.answerImageUrl || data.answer_image_url || '',
+        hintText: data.hintText || data.hintImagePrompt || data.hint_image_prompt || '',
+        wordArray: data.wordArray || data.word_array || [],
+        answerLength: data.answerLength ?? data.answer_length ?? 0,
+        answer: data.answer || '',
+      }
+    })
+  },
+
+  /** 共创：提交共创题目答案 */
+  submitCocreateAnswer(cocreateId, userAnswer) {
+    return request({
+      url: '/pun/cocreate/answer/submit',
+      method: 'POST',
+      data: { cocreateId, userAnswer },
+    })
+  },
 }

@@ -10,7 +10,7 @@
         <text class="nav-icon">‹</text>
       </view>
       <view class="nav-center">
-        <text class="nav-title">第{{ level }}关</text>
+        <text class="nav-title">{{ cocreateId ? '共创关卡' : '第' + level + '关' }}</text>
         <text class="nav-star">⭐</text>
       </view>
       <button class="btn-help" open-type="share" @click="help">
@@ -65,6 +65,7 @@ import { getLevelPuzzle } from '../../data/levels'
 import { api } from '../../utils/api'
 
 const level = ref(1)
+const cocreateId = ref(0)
 const answerLen = ref(3)
 const answerChars = ref([])
 const chars = ref([])
@@ -89,21 +90,45 @@ function isSlotError(index) {
 }
 
 onLoad((opts) => {
-  if (opts && opts.level) level.value = parseInt(opts.level, 10)
+  if (opts && opts.cocreateId) {
+    cocreateId.value = parseInt(opts.cocreateId, 10)
+    level.value = 0
+  } else if (opts && opts.level) {
+    level.value = parseInt(opts.level, 10)
+    cocreateId.value = 0
+  }
   loading.value = true
-  getLevelPuzzle(level.value).then((data) => {
-    answerLen.value = data.answerLength
-    chars.value = data.wordArray.length ? data.wordArray : []
-    puzzle.value = {
-      imageUrl: data.imageUrl || '',
-      hintText: data.hintText || '',
-    }
-    answerChars.value = []
-    pickedIndices.value = []
-    loading.value = false
-  }).catch(() => {
-    loading.value = false
-  })
+  if (cocreateId.value) {
+    api.getCocreateDetail(cocreateId.value).then((data) => {
+      if (data) {
+        answerLen.value = data.answerLength || 0
+        chars.value = Array.isArray(data.wordArray) ? data.wordArray : []
+        puzzle.value = {
+          imageUrl: data.imageUrl || '',
+          hintText: data.hintText || '',
+        }
+      }
+      answerChars.value = []
+      pickedIndices.value = []
+      loading.value = false
+    }).catch(() => {
+      loading.value = false
+    })
+  } else {
+    getLevelPuzzle(level.value).then((data) => {
+      answerLen.value = data.answerLength
+      chars.value = data.wordArray.length ? data.wordArray : []
+      puzzle.value = {
+        imageUrl: data.imageUrl || '',
+        hintText: data.hintText || '',
+      }
+      answerChars.value = []
+      pickedIndices.value = []
+      loading.value = false
+    }).catch(() => {
+      loading.value = false
+    })
+  }
 })
 
 function pickChar(c, idx) {
@@ -132,11 +157,24 @@ async function checkAnswer() {
   submitting.value = true
   feedback.value = []
   try {
-    const data = await api.submitAnswer(level.value, userAnswer)
+    const isCocreate = !!cocreateId.value
+    const data = isCocreate
+      ? await api.submitCocreateAnswer(cocreateId.value, userAnswer)
+      : await api.submitAnswer(level.value, userAnswer)
     if (data.isCorrect) {
       uni.showToast({ title: '回答正确！', icon: 'success' })
       setTimeout(() => {
-        uni.navigateTo({ url: `/pages/play/play?level=${level.value + 1}` })
+        if (isCocreate) {
+          uni.navigateBack({ fail: () => { uni.reLaunch({ url: '/pages/cocreate/list' }) } })
+        } else {
+          const nextLevel = level.value + 1
+          if(nextLevel > 270) {
+            uni.navigateTo({ url: `/pages/index/index` })
+            uni.showToast({ title: '恭喜您已通关,关卡持续更新中,敬请期待~', icon: 'none' })
+            return
+          }
+          uni.navigateTo({ url: `/pages/play/play?level=${nextLevel}` })
+        }
       }, 1200)
       return
     }
@@ -169,11 +207,19 @@ function help() {
   // #endif
 }
 
-// 微信小程序分享：好友打开后进入当前关卡
-onShareAppMessage(() => ({
-  title: `第${level.value}关求助，快来帮我猜谐音梗！`,
-  path: `/pages/play/play?level=${level.value}`,
-}))
+// 微信小程序分享：好友打开后进入当前关卡或共创
+onShareAppMessage(() => {
+  if (cocreateId.value) {
+    return {
+      title: '这条谐音梗等你来猜！',
+      path: `/pages/play/play?cocreateId=${cocreateId.value}`,
+    }
+  }
+  return {
+    title: `第${level.value}关求助，快来帮我猜谐音梗！`,
+    path: `/pages/play/play?level=${level.value}`,
+  }
+})
 </script>
 
 <style lang="scss" scoped>
