@@ -8,9 +8,11 @@
 
     <view class="nav-bar">
       <view class="nav-btn" @click="back">
-        <text class="nav-icon">‹</text>
+        <text class="nav-icon">🏠</text>
       </view>
-      <text class="nav-title">我的关卡</text>
+      <view class="nav-center">
+        <text class="nav-title">我的关卡</text>
+      </view>
       <view class="btn-feedback" @click="feedback">
         <text class="feedback-icon">💬</text>
         <text class="feedback-text">反馈</text>
@@ -162,10 +164,13 @@ function feedback() {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* 居中标题 */
   margin-bottom: 40rpx;
+  min-height: 88rpx;
 }
 .nav-btn {
+  position: absolute; /* 绝对定位左侧 */
+  left: 0;
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
@@ -178,9 +183,13 @@ function feedback() {
   border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-icon {
-  font-size: 44rpx;
-  font-weight: bold;
+  font-size: 36rpx;
   line-height: 1;
+}
+.nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .nav-title {
   font-size: 38rpx;
@@ -189,6 +198,8 @@ function feedback() {
   letter-spacing: 0.06em;
 }
 .btn-feedback {
+  position: absolute; /* 绝对定位右侧 */
+  right: 0;
   display: flex;
   align-items: center;
   gap: 8rpx;

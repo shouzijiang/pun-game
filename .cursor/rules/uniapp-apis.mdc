@@ -1,8 +1,6 @@
 ---
-description: UniApp 多端兼容 - 统一使用 uni.* API，兼容微信小程序、抖音小程序与 H5
 alwaysApply: true
 ---
-
 # UniApp 多端 API 规范
 
 本工程需同时兼容 **微信小程序**、**抖音小程序** 和 **H5**。禁止使用仅浏览器或仅某一端可用的 API，一律使用 **uni.*** 提供的封装。

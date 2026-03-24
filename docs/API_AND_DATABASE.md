@@ -26,14 +26,18 @@ updated_at      datetime
 
 id              int unsigned   主键自增
 user_id         int unsigned   用户 id，唯一（一用户一条）
-nickname        varchar(64)   冗余，排行展示用
-avatar          varchar(512)   冗余，排行展示用
 max_level       int unsigned   闯到的最高关卡号
+max_mid_level  int unsigned   闯到的最高关卡号（中级）
 updated_at      datetime       最近一次通过关卡的时间
 ```
 
 - 唯一索引：`user_id`。
-- 排行榜查询：`ORDER BY max_level DESC, updated_at DESC`，分页。
+- 排行榜查询（初级）：`ORDER BY max_level DESC, updated_at DESC`，分页。
+- 排行榜查询（中级）：`ORDER BY max_mid_level DESC, updated_at DESC`，分页。
+
+- 迁移建议（方案A-表新增字段）：
+  - `pun_game_rank`：新增 `max_mid_level`（以及对应“中级最近时间”字段，如果你选择拆分 `updated_at_mid`）。
+  - `pun_game_level_progress`：保持原结构，不需要用 `game_tier` 区分模式。中级答题通过时只更新中级榜单（`pun_game_rank.max_mid_level`），不写入 `pun_game_level_progress`，避免初级/中级关卡号重叠导致“我的关卡”错误解锁。
 
 ---
 
@@ -44,15 +48,15 @@ updated_at      datetime       最近一次通过关卡的时间
 
 id              int unsigned   主键自增
 user_id         int unsigned   用户 id
-level           int unsigned   关卡号（1~253）
+level           int unsigned   关卡号（初级：1~253）
 passed          tinyint(1)     是否已通过：0 否 1 是
 created_at      datetime
 updated_at      datetime
 ```
 
 - 唯一索引：`(user_id, level)`，一用户一关一条。
-- 用户“当前可玩关卡” = 已通过的最大 level + 1，若从未通过则为 1。
-- 已通过列表：`WHERE user_id=? AND passed=1 ORDER BY level`。
+- 用户“当前可玩关卡”（初级） = 已通过的最大 level + 1，若从未通过则为 1。
+- 已通过列表（初级）：`WHERE user_id=? AND passed=1 ORDER BY level`。
 
 ---
 
@@ -111,10 +115,13 @@ updated_at          datetime
 
 - **GET** `/pun/rank/list?page=1&page_size=20`
 - **Header**：`Authorization: Bearer <token>`（可选，未登录可只返回榜单）
+- **Query(可选)**：`gameTier=beginner|mid`
 - **响应**：  
   `{ "code": 200, "data": { "list": [ { "user_id": 1, "nickname": "昵称", "avatar": "头像URL", "max_level": 253, "updated_at": "03-03 11:42" } ], "total": 100 } }`  
   `updated_at` 可为格式化的最近闯关时间，便于前端展示“最近”。
-- 按 `max_level` 降序、`updated_at` 降序排序。
+  - 中级（`gameTier=mid`）时：后端需按 `pun_game_rank.max_mid_level` 排序，并将 `max_mid_level` 映射为响应字段 `max_level`，同时使用 `pun_game_rank.updated_at` 作为响应字段 `updated_at`（保证前端展示“最近”）。并且只返回有中级闯关记录的玩家（例如 `max_mid_level` 不为 NULL）。
+- 当 `gameTier` 为 `beginner` 或未传：按 `max_level` 降序、`updated_at` 降序排序。
+- 当 `gameTier` 为 `mid`：按 `max_mid_level` 降序、`updated_at` 降序排序，并在返回中映射为字段名 `max_level`（保证前端复用 `item.max_level` 渲染）。
 
 ---
 
@@ -124,12 +131,17 @@ updated_at          datetime
 - **Header**：`Authorization: Bearer <token>`
 - **Body**：  
   `{ "level": 36, "userAnswer": ["弟", "分"] }`
+  - 初级：`gameTier` 不传（或传 `beginner`），按原逻辑处理（初级 `level` 从 1 开始）。
+  - 中级：传 `gameTier: "mid"`，并且 `level` 必须等于 `issue2.json` 里该题目的 `level` 值（通常从 0 开始，且可能不连续）。
+  - 示例（中级）：`{ "level": 0, "userAnswer": ["好", "久", "不", "见"], "gameTier": "mid" }`
 - **响应**：  
   `{ "code": 200, "data": { "isCorrect": false, "feedback": [ { "position": 0, "isCorrect": false }, { "position": 1, "isCorrect": false } ] } }`
   - `position`：对应 `userAnswer` 下标；`isCorrect`：该位置是否正确。
 - **后端逻辑**：
   - 根据题目配置校验答案，生成 `isCorrect` 与 `feedback`。
-  - 若 `isCorrect === true`：更新 `pun_game_rank`（该用户 `max_level` 取 max(当前, level)）、在 `pun_game_level_progress` 中写入或更新该用户该关 `passed=1`。
+  - 若 `isCorrect === true`：
+    - 当 `gameTier=beginner`：更新 `pun_game_rank.max_level = max(max_level, level)`；并在 `pun_game_level_progress` 中写入/更新 `(user_id, level)` 的 `passed=1`。
+    - 当 `gameTier=mid`：更新 `pun_game_rank.max_mid_level = max(max_mid_level, level)`；并将该中级榜单的“最近时间”字段更新为当前时间。中级答题不写入 `pun_game_level_progress`，避免初级/中级关卡号重叠影响“我的关卡”。
 
 ---
 
@@ -138,10 +150,12 @@ updated_at          datetime
 - **GET** `/pun/level/progress`
 - **Header**：`Authorization: Bearer <token>`
 - **响应**：  
-  `{ "code": 200, "data": { "currentLevel": 5, "passedLevels": [1, 2, 3, 4], "totalLevels": 270 } }`
+  `{ "code": 200, "data": { "currentLevel": 5, "passedLevels": [1, 2, 3, 4], "totalLevels": 270, "midCurrentLevel": 0, "midTotalLevels": 156 } }`
   - `currentLevel`：当前可玩关卡（已通过最大关 + 1）。
   - `passedLevels`：已通过关卡号数组，可有序。
-  - `totalLevels`：总关卡数（当前为 270）；前端按 `1..totalLevels` 遍历展示关卡，已通过仍看 `passedLevels`。
+  - `totalLevels`：总关卡数（用于前端按范围展示）。
+  - `midCurrentLevel`：中级当前可玩的“下一条真实存在的 level”。由 `pun_game_rank.max_mid_level` 以及 `issue2.json` 的有序 level 列表推导（可能从 0 起，且可能跳号，不能简单 `level+1`）。
+  - `midTotalLevels`：中级题目总条目数（用于前端展示中级关卡范围）。
 
 ---
 
@@ -169,9 +183,9 @@ updated_at          datetime
 
 ## 四、前端使用说明
 
-- 登录：App 启动时（仅微信小程序）调用 `wechatLogin()`，与 think1-mini-uniapp 一致。
+- 登录：App 启动时（仅微信小程序）调用 `wechatLogin()`。
 - 排行榜页：调用 `GET /pun/rank/list`，展示 `list`。
 - 游戏页：填完答案后调用 `POST /pun/answer/submit`，根据 `isCorrect` 与 `feedback` 展示对错、晃动与标红。
-- 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel`、`passedLevels` 与 `totalLevels`；用 `totalLevels` 做总关卡数按 `1..totalLevels` 遍历，“当前关”和“已通过”仍用 `currentLevel` 与 `passedLevels`。
+- 关卡/首页：进入时调用 `GET /pun/level/progress`，得到 `currentLevel`、`passedLevels` 与 `totalLevels`（初级）；同时返回 `midCurrentLevel` 与 `midTotalLevels`（中级，用于首页进入中级玩法的起始关卡）。
 - 反馈：关卡页点击「反馈」进入反馈页，填写类型/内容/联系方式后调用 `POST /pun/feedback/submit`。
 - 共创：首页「进入共创」→ 共创列表/上传页；上传页含关卡答案、第一张图提示词、答案解释、生成选词(20)、AI 生成提示图/答案图、提交关卡；玩共创通过 `?cocreateId=123` 进入 play 页，详见 **《COCREATE_FEATURE.md》**。

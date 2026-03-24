@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "mysql-local": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@neverinfamous/mysql-mcp",
+        "--transport",
+        "stdio",
+        "--mysql",
+        "mysql://root:root@127.0.0.1:3306/standup_app"
+      ]
+    },
+    "mysql-test": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@neverinfamous/mysql-mcp",
+        "--transport",
+        "stdio",
+        "--mysql",
+        "mysql://test_user:test_pwd@192.168.1.100:3306/standup_app_test"
+      ]
+    }
+  }
+}

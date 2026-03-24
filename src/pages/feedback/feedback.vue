@@ -7,10 +7,9 @@
 
     <view class="nav-bar">
       <view class="nav-btn" @click="back">
-        <text class="nav-icon">‹</text>
+        <text class="nav-icon">🏠</text>
       </view>
       <text class="nav-title">意见反馈</text>
-      <view class="nav-placeholder" />
     </view>
 
     <view class="form-wrap">
@@ -152,10 +151,13 @@ function submit() {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* 居中标题 */
   margin-bottom: 48rpx;
+  min-height: 88rpx;
 }
 .nav-btn {
+  position: absolute; /* 绝对定位左侧 */
+  left: 0;
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
@@ -168,8 +170,7 @@ function submit() {
   border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-icon {
-  font-size: 44rpx;
-  font-weight: bold;
+  font-size: 36rpx;
   line-height: 1;
 }
 .nav-title {
@@ -177,9 +178,6 @@ function submit() {
   font-weight: 700;
   color: #3d3530;
   letter-spacing: 0.06em;
-}
-.nav-placeholder {
-  width: 72rpx;
 }
 
 .form-wrap {

@@ -29,6 +29,13 @@
       }
     },
     {
+      "path": "pages/playMid/playMid",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "中级"
+      }
+    },
+    {
       "path": "pages/feedback/feedback",
       "style": {
         "navigationStyle": "custom",

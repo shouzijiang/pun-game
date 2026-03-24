@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page page--mid">
     <view class="bg-wrap">
       <view class="bg-gradient" />
       <view class="bg-dots" />
@@ -10,7 +10,7 @@
         <text class="nav-icon">🏠</text>
       </view>
       <view class="nav-center">
-        <text class="nav-title">{{ cocreateId ? '共创关卡' : '第' + level + '关' }}</text>
+        <text class="nav-title">中级 · 第{{ level }}关</text>
         <text class="nav-star">⭐</text>
       </view>
       <button class="btn-help" open-type="share" @click="help">
@@ -19,45 +19,56 @@
       </button>
     </view>
 
-    <view class="card">
-      <view class="card-inner">
-        <image
-          v-if="puzzle.imageUrl"
-          class="puzzle-img"
-          :src="puzzle.imageUrl"
-          mode="aspectFill"
-        />
-        <view v-else-if="loading" class="puzzle-loading">加载中...</view>
-        <text class="puzzle-hint">{{ puzzle.hintText }}</text>
+    <view class="card card--mid">
+      <view v-if="puzzle.keywordHint" class="keyword-tab">
+        <text class="keyword-tab-text">{{ puzzle.keywordHint }}</text>
+      </view>
+
+      <view class="card-inner card-inner--stack">
+        <view class="stack-block">
+          <image v-if="puzzle.imageUrlTop" class="stack-img" :src="puzzle.imageUrlTop" mode="aspectFill" />
+          <view v-else-if="loading" class="stack-placeholder">加载中...</view>
+          <view v-else class="stack-placeholder">暂无配图</view>
+          <text v-if="puzzle.topCaption" class="stack-caption">{{ puzzle.topCaption }}</text>
+        </view>
+
+        <view class="stack-block">
+          <image v-if="puzzle.imageUrlBottom" class="stack-img" :src="puzzle.imageUrlBottom" mode="aspectFill" />
+          <view v-else-if="loading" class="stack-placeholder">加载中...</view>
+          <view v-else class="stack-placeholder">暂无下图</view>
+          <!-- 你给的数据里 bottomcaption 没有单独字段，这里预留留白 -->
+          <text v-if="puzzle.bottomCaption" class="stack-caption">{{ puzzle.bottomCaption }}</text>
+        </view>
       </view>
     </view>
 
-    <view class="answer-row">
+    <view class="answer-row answer-row--mid">
+      <input
+        ref="midInputRef"
+        class="answer-mid-input-cover"
+        type="text"
+        :value="answerInputValue"
+        @input="onMidAnswerInput"
+        confirm-type="done"
+        @focus="onMidInputFocus"
+        @blur="onMidInputBlur"
+        @click.stop="focusMidInput()"
+      />
+
       <view class="answer-slots">
         <view
           v-for="i in answerLen"
           :key="i"
           :class="['slot', { 'slot-error': isSlotError(i - 1), 'slot-shake': slotShake }]"
-          @click="removeAt(i - 1)"
         >
-          {{ answerChars[i - 1] || '' }}
+          <text v-if="answerChars[i - 1]" class="slot-char">{{ answerChars[i - 1] }}</text>
+          <view v-else-if="caretIndex === i - 1" class="slot-caret" />
         </view>
       </view>
     </view>
 
     <view class="stuck-tip">
       <text>若通过后没进入下一关，请点击右上角重新游戏</text>
-    </view>
-
-    <view class="chars-wrap">
-      <view
-        v-for="(c, idx) in chars"
-        :key="idx"
-        :class="['char-btn', { 'char-btn-used': isCharUsed(idx) }]"
-        @click="pickChar(c, idx)"
-      >
-        {{ c }}
-      </view>
     </view>
 
     <!-- 通关成功动画弹层 -->
@@ -67,134 +78,110 @@
           <text class="success-icon">🎉</text>
         </view>
         <text class="success-title">回答正确！</text>
-        <text class="success-subtitle">太棒了，脑洞大开</text>
+        <!-- <text class="success-subtitle">太棒了，脑洞大开</text> -->
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
-import { getLevelPuzzle } from '../../data/levels'
+import { getMidLevelPuzzle, getMidNextLevel } from '../../data/levels'
 import { api } from '../../utils/api'
 
-const level = ref(1)
-const cocreateId = ref(0)
+const level = ref(0)
 const answerLen = ref(3)
 const answerChars = ref([])
-const chars = ref([])
 const puzzle = ref({
-  imageUrl: '',
-  hintText: '',
+  imageUrlTop: '',
+  imageUrlBottom: '',
+  topCaption: '',
+  bottomCaption: '',
+  keywordHint: '',
 })
 const loading = ref(true)
 const submitting = ref(false)
 const feedback = ref([])
 const slotShake = ref(false)
 const showSuccess = ref(false)
-/** 当前已选入答案槽的字在 chars 中的下标，与 answerChars 一一对应 */
-const pickedIndices = ref([])
 
-function isCharUsed(idx) {
-  return pickedIndices.value.includes(idx)
-}
+const answerInputValue = ref('')
+const midInputRef = ref(null)
+const midInputFocused = ref(false)
+
+const caretIndex = computed(() => {
+  // 光标显示在“下一个将要输入的位置”的槽位里
+  // 用户输入长度到达 answerLen 后，隐藏光标（正在校验/已完成）
+  if (!midInputFocused.value) return -1
+  const n = answerChars.value.length
+  if (n >= answerLen.value) return -1
+  return n
+})
 
 function isSlotError(index) {
   const fb = feedback.value[index]
   return fb && fb.isCorrect === false
 }
 
-onLoad((opts) => {
-  if (opts && opts.cocreateId) {
-    cocreateId.value = parseInt(opts.cocreateId, 10)
-    level.value = 0
-  } else if (opts && opts.level) {
-    level.value = parseInt(opts.level, 10)
-    cocreateId.value = 0
-  }
-  loading.value = true
-  if (cocreateId.value) {
-    api.getCocreateDetail(cocreateId.value).then((data) => {
-      if (data) {
-        answerLen.value = data.answerLength || 0
-        chars.value = Array.isArray(data.wordArray) ? data.wordArray : []
-        puzzle.value = {
-          imageUrl: data.imageUrl || '',
-          hintText: data.hintText || '',
-        }
-      }
-      answerChars.value = []
-      pickedIndices.value = []
-      loading.value = false
-    }).catch(() => {
-      loading.value = false
-    })
-  } else {
-    getLevelPuzzle(level.value).then((data) => {
-      answerLen.value = data.answerLength
-      chars.value = data.wordArray.length ? data.wordArray : []
-      puzzle.value = {
-        imageUrl: data.imageUrl || '',
-        hintText: data.hintText || '',
-      }
-      answerChars.value = []
-      pickedIndices.value = []
-      loading.value = false
-    }).catch(() => {
-      loading.value = false
-    })
-  }
-})
-
-function pickChar(c, idx) {
-  if (answerChars.value.length >= answerLen.value) return
-  if (isCharUsed(idx)) return
-  answerChars.value = [...answerChars.value, c]
-  pickedIndices.value = [...pickedIndices.value, idx]
-  if (answerChars.value.length === answerLen.value) {
-    checkAnswer()
-  }
+function onMidInputFocus() {
+  midInputFocused.value = true
 }
 
-function removeAt(i) {
-  const arr = [...answerChars.value]
-  const indices = [...pickedIndices.value]
-  arr.splice(i, 1)
-  indices.splice(i, 1)
-  answerChars.value = arr
-  pickedIndices.value = indices
+function onMidInputBlur() {
+  midInputFocused.value = false
+}
+
+function focusMidInput() {
+  nextTick(() => {
+    const el = midInputRef.value
+    if (el && typeof el.focus === 'function') el.focus()
+  })
+}
+
+function onMidAnswerInput(e) {
+  const raw = (e.detail && e.detail.value) || ''
+  // 不对原始输入做 maxlength 截断，否则拼音输入法（先输入字母再转汉字）会在字母长度达到 answerLen 时卡住。
+  answerInputValue.value = raw
+
+  // 只有当用户输入里已经出现汉字时，才根据 answerLength 计算槽位与自动判定。
+  // （中级题库答案主要是中文；如果你后续有非中文答案，可以再补一套规则。）
+  const hasHan = /[\u4e00-\u9fff]/.test(raw)
+  if (!hasHan) {
+    answerChars.value = []
+    return
+  }
+
+  const parts = Array.from(raw).slice(0, answerLen.value)
+  answerChars.value = parts
+  if (parts.length === answerLen.value) checkAnswer()
 }
 
 async function checkAnswer() {
   if (submitting.value) return
+  // answerChars 已按 answerLength 计算（仅在输入里出现汉字后更新）
   const userAnswer = answerChars.value.slice()
   if (userAnswer.length !== answerLen.value) return
   submitting.value = true
   feedback.value = []
+
   try {
-    const isCocreate = !!cocreateId.value
-    const data = isCocreate
-      ? await api.submitCocreateAnswer(cocreateId.value, userAnswer)
-      : await api.submitAnswer(level.value, userAnswer)
+    const data = await api.submitAnswer(level.value, userAnswer, { gameTier: 'mid' })
     if (data.isCorrect) {
       showSuccess.value = true
+      const nextLevel = await getMidNextLevel(level.value)
       setTimeout(() => {
-        showSuccess.value = false
-        if (isCocreate) {
-          uni.navigateBack({ fail: () => { uni.reLaunch({ url: '/pages/cocreate/list' }) } })
-        } else {
-          const nextLevel = level.value + 1
-          if(nextLevel > 270) {
-            uni.navigateTo({ url: `/pages/index/index` })
-            uni.showToast({ title: '恭喜您已通关,关卡持续更新中,敬请期待~', icon: 'none' })
+          showSuccess.value = false
+          if (nextLevel == null) {
+            uni.navigateTo({ url: '/pages/index/index' })
+            uni.showToast({ title: '恭喜您已通关中级,关卡持续更新中,敬请期待~', icon: 'none' })
             return
           }
-          uni.navigateTo({ url: `/pages/play/play?level=${nextLevel}` })
-        }
-      }, 1500)
+          uni.navigateTo({ url: `/pages/playMid/playMid?level=${nextLevel}` })
+        }, 1500)
       return
     }
+
     feedback.value = data.feedback || []
     slotShake.value = true
     uni.showToast({ title: '再想想～', icon: 'none' })
@@ -202,7 +189,7 @@ async function checkAnswer() {
       slotShake.value = false
       setTimeout(() => {
         answerChars.value = []
-        pickedIndices.value = []
+        answerInputValue.value = ''
         feedback.value = []
       }, 200)
     }, 600)
@@ -217,24 +204,39 @@ function back() {
   uni.reLaunch({ url: '/pages/index/index' })
 }
 
-// 非微信端点击「求助」时提示（微信端由 open-type="share" 唤起分享）
 function help() {
   // #ifndef MP-WEIXIN
   uni.showToast({ title: '分享给好友一起猜～', icon: 'none' })
   // #endif
 }
 
-// 微信小程序分享：好友打开后进入当前关卡或共创
-onShareAppMessage(() => {
-  if (cocreateId.value) {
-    return {
-      title: '这条谐音梗等你来猜！',
-      path: `/pages/play/play?cocreateId=${cocreateId.value}`,
+onLoad((opts) => {
+  const lv = opts && opts.level ? parseInt(opts.level, 10) : 0
+  level.value = lv
+  loading.value = true
+
+  getMidLevelPuzzle(lv).then((data) => {
+    answerLen.value = data.answerLength || 3
+    puzzle.value = {
+      imageUrlTop: data.imageUrlTop || '',
+      imageUrlBottom: data.imageUrlBottom || '',
+      topCaption: data.topCaption || '',
+      bottomCaption: data.bottomCaption || '',
+      keywordHint: data.keywordHint || '',
     }
-  }
+    answerChars.value = []
+    feedback.value = []
+    answerInputValue.value = ''
+    loading.value = false
+  }).catch(() => {
+    loading.value = false
+  })
+})
+
+onShareAppMessage(() => {
   return {
-    title: `第${level.value}关求助，快来帮我猜谐音梗！`,
-    path: `/pages/play/play?level=${level.value}`,
+    title: `中级第${level.value}关，快来帮我猜谐音梗！`,
+    path: `/pages/playMid/playMid?level=${level.value}`,
   }
 })
 </script>
@@ -243,11 +245,20 @@ onShareAppMessage(() => {
 .page {
   min-height: 100vh;
   position: relative;
-  padding-top: 12vh;
+  padding-top: 8vh;
   padding-bottom: 48rpx;
   padding-left: 40rpx;
   padding-right: 40rpx;
   box-sizing: border-box;
+}
+
+.page--mid .bg-gradient {
+  background: linear-gradient(165deg, #e8f4fc 0%, #d4e8f8 45%, #c5dff5 100%);
+}
+.page--mid .bg-dots {
+  opacity: 0.45;
+  background-image: radial-gradient(circle at 1px 1px, rgba(120, 160, 200, 0.35) 1px, transparent 0);
+  background-size: 40rpx 40rpx;
 }
 
 .bg-wrap {
@@ -291,6 +302,10 @@ onShareAppMessage(() => {
   box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.1);
   border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
+.page--mid .nav-btn {
+  border-color: rgba(140, 170, 210, 0.35);
+  box-shadow: 0 4rpx 16rpx rgba(100, 140, 180, 0.12);
+}
 .nav-icon {
   font-size: 36rpx;
   line-height: 1;
@@ -326,6 +341,9 @@ onShareAppMessage(() => {
   box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.08);
   border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
+.page--mid .btn-help {
+  border-color: rgba(140, 170, 210, 0.3);
+}
 .btn-help::after {
   border: none;
 }
@@ -342,6 +360,36 @@ onShareAppMessage(() => {
   background: rgba(255, 255, 255, 0.95);
   border: 2rpx solid rgba(200, 160, 140, 0.15);
 }
+.card--mid {
+  overflow: visible;
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 36rpx rgba(100, 140, 180, 0.14), 0 2rpx 10rpx rgba(0,0,0,0.05);
+  border-color: rgba(180, 200, 230, 0.5);
+}
+
+.keyword-tab {
+  position: absolute;
+  top: 26rpx;
+  right: 18rpx;
+  z-index: 4;
+  min-height: auto;
+  padding: 14rpx 20rpx;
+  background: #d45d4a;
+  border-radius: 14rpx;
+  box-shadow: 0 10rpx 24rpx rgba(212, 93, 74, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.keyword-tab-text {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+  writing-mode: horizontal-tb;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
 .card-inner {
   min-height: 400rpx;
   display: flex;
@@ -349,26 +397,43 @@ onShareAppMessage(() => {
   align-items: center;
   border-radius: 24rpx;
 }
-.puzzle-img {
-  width: 110%;
-  height: 650rpx;
-  border-radius: 16rpx;
+.card-inner--stack {
+  min-height: auto;
+  padding: 36rpx 28rpx 72rpx;
+  gap: 28rpx;
 }
-.puzzle-loading {
-  height: 420rpx;
+.stack-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+.stack-img {
+  width: 100%;
+  height: 400rpx;
+  border-radius: 20rpx;
+  background: #f0f4f8;
+}
+.stack-placeholder {
+  width: 100%;
+  height: 220rpx;
+  border-radius: 20rpx;
+  background: rgba(240, 244, 248, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #a89f98;
+  color: #8a9aaa;
 }
-.puzzle-hint {
-  margin-top: 24rpx;
-  padding: 0 24rpx 28rpx;
-  font-size: 32rpx;
-  color: #3d3530;
-  font-weight: 500;
+.stack-caption {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2c3a4a;
   text-align: center;
+  line-height: 1.5;
+  padding: 0 8rpx;
+  margin-top: -90rpx;
 }
 
 .answer-row {
@@ -384,25 +449,42 @@ onShareAppMessage(() => {
   box-shadow: 0 6rpx 20rpx rgba(180, 120, 100, 0.08);
   border: 2rpx solid rgba(200, 160, 140, 0.2);
 }
-.stuck-tip {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  font-size: 24rpx;
-  color: #a89f98;
-  margin-top: -16rpx;
-  margin-bottom: 32rpx;
+.answer-row--mid {
+  min-height: 132rpx;
+  border-color: rgba(180, 200, 230, 0.45);
+  box-shadow: 0 6rpx 20rpx rgba(100, 140, 180, 0.1);
+}
+.answer-mid-input-cover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.001;
+  z-index: 3;
+  font-size: 32rpx;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 .answer-slots {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 18rpx;
+  flex-wrap: wrap;
 }
 .slot {
-  width: 76rpx;
+  min-width: 76rpx;
   height: 76rpx;
+  padding: 0 8rpx;
   border: 2rpx dashed rgba(180, 140, 120, 0.4);
   border-radius: 20rpx;
   display: flex;
@@ -412,6 +494,38 @@ onShareAppMessage(() => {
   font-weight: 600;
   color: #3d3530;
   background: rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+}
+
+.slot-char {
+  // 保证字符与原槽位视觉居中一致
+  line-height: 1;
+}
+
+.slot-caret {
+  width: 10rpx;
+  height: 46rpx;
+  border-radius: 8rpx;
+  background: rgba(80, 120, 200, 0.55);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.stuck-tip {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  font-size: 24rpx;
+  color: #8a9aaa;
+  margin-top: -16rpx;
+  margin-bottom: 32rpx;
+}
+.answer-row--mid .slot {
+  border-color: rgba(140, 170, 200, 0.45);
+  background: rgba(248, 252, 255, 0.95);
 }
 .slot-error {
   border-color: #c04a38;
@@ -496,36 +610,5 @@ onShareAppMessage(() => {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-16rpx); }
 }
-
-.chars-wrap {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18rpx;
-  justify-content: center;
-}
-.char-btn {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
-  color: #fff;
-  font-size: 36rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6rpx 20rpx rgba(192, 74, 56, 0.3), inset 0 2rpx 0 rgba(255,255,255,0.2);
-  border: 2rpx solid transparent;
-}
-.char-btn:active {
-  transform: scale(0.96);
-}
-.char-btn-used {
-  background: rgba(200, 180, 170, 0.5);
-  color: #a89f98;
-  box-shadow: none;
-  border: 2rpx solid rgba(200, 160, 140, 0.25);
-}
 </style>
+

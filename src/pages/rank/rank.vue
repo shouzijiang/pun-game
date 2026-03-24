@@ -8,11 +8,20 @@
 
     <view class="nav-bar">
       <view class="nav-btn" @click="back">
-        <text class="nav-icon">‹</text>
+        <text class="nav-icon">🏠</text>
       </view>
-      <text class="nav-title">排行榜</text>
+      <view class="nav-center">
+        <text class="nav-title">排行榜</text>
+      </view>
       <view class="nav-btn nav-btn-refresh" @click="refresh">
         <text class="nav-icon">↻</text>
+      </view>
+    </view>
+
+    <view class="tabs-wrap">
+      <view class="tabs">
+        <view :class="['tab', { active: currentTab === 'beginner' }]" @click="switchTab('beginner')">初级榜</view>
+        <view :class="['tab', { active: currentTab === 'mid' }]" @click="switchTab('mid')">中级榜</view>
       </view>
     </view>
 
@@ -51,9 +60,14 @@ import { onShow } from '@dcloudio/uni-app'
 import { api } from '../../utils/api'
 
 const list = ref([])
+const currentTab = ref('beginner')
 
 function loadRank() {
-  api.getRankList({ page: 1, page_size: 50 })
+  const params = { page: 1, page_size: 100 }
+  if (currentTab.value === 'mid') {
+    params.gameTier = 'mid'
+  }
+  api.getRankList(params)
     .then((data) => {
       list.value = (data.list || []).map((item) => ({
         user_id: item.user_id,
@@ -77,6 +91,13 @@ function refresh() {
   loadRank()
   uni.showToast({ title: '已刷新', icon: 'none' })
 }
+
+function switchTab(tab) {
+  if (currentTab.value === tab) return
+  currentTab.value = tab
+  list.value = []
+  loadRank()
+}
 </script>
 
 <style lang="scss" scoped>
@@ -84,7 +105,7 @@ function refresh() {
   min-height: 100vh;
   position: relative;
   padding-bottom: 48rpx;
-  padding-top: 12vh;
+  padding-top: 6vh;
   padding-left: 40rpx;
   padding-right: 40rpx;
   box-sizing: border-box;
@@ -123,10 +144,13 @@ function refresh() {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* 居中标题 */
   margin-bottom: 40rpx;
+  min-height: 88rpx;
 }
 .nav-btn {
+  position: absolute;
+  left: 0;
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
@@ -139,14 +163,16 @@ function refresh() {
   border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
 .nav-btn-refresh {
+  position: absolute;
+  right: 0;
+  left: auto;
   color: #5c534d;
 }
 .nav-btn:active {
   transform: scale(0.96);
 }
 .nav-icon {
-  font-size: 44rpx;
-  font-weight: bold;
+  font-size: 36rpx;
   line-height: 1;
 }
 .nav-title {
@@ -154,6 +180,35 @@ function refresh() {
   font-weight: 700;
   color: #3d3530;
   letter-spacing: 0.06em;
+}
+
+.tabs-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+.tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 40rpx;
+  padding: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(180, 120, 100, 0.1);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
+}
+.tab {
+  padding: 12rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #8c7a70;
+  border-radius: 32rpx;
+  transition: all 0.3s ease;
+}
+.tab.active {
+  background: #d45d4a;
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(212, 93, 74, 0.3);
 }
 
 .list {

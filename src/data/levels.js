@@ -49,24 +49,129 @@ export function isLevelPassed(level) {
 }
 
 const LEVEL_DATA_BASE = 'https://sofun.online/static/punGame/issue'
+/** 中级题库总表（每一条里带 question/answer/answerType 等） */
+const MID_ISSUE_URL = 'https://sofun.online/static/punGame/issue2.json'
+/** 中级题目图片：w{level}-1 为上图，w{level}-2 为下图 */
+const MID_IMAGE_BASE = 'https://sofun.online/static/punGame/img2'
+
+const FALLBACK_PUZZLE = {
+  hintText: '题库加载失败，请稍后重试',
+  topCaption: '',
+  bottomCaption: '',
+  keywordHint: '',
+  wordArray: ['测', '试', '题'],
+  answerLength: 3,
+  imageUrl: '',
+  imageUrlTop: '',
+  imageUrlBottom: '',
+  isReviewMode: false,
+  answer: '',
+}
+
+let midIssueCache = null
+let midIssuePromise = null
+let midMaxLevel = null
+let midLevels = null
 
 function normalizePuzzle(data) {
+  const answerLength = Math.max(1, parseInt(data.answerLength, 10) || 3)
   return {
     hintText: data.hintText || '',
+    topCaption: data.topCaption || '',
+    bottomCaption: data.bottomCaption || '',
+    keywordHint: data.keywordHint || data.category || '',
     wordArray: Array.isArray(data.wordArray) ? data.wordArray : [],
-    answerLength: Math.max(1, parseInt(data.answerLength, 10) || 3),
+    answerLength,
     imageUrl: data.imageUrl || '',
+    imageUrlTop: data.imageUrlTop || data.image_url_top || '',
+    imageUrlBottom: data.imageUrlBottom || data.image_url_bottom || '',
     isReviewMode: !!data.isReviewMode,
     answer: data.answer != null ? String(data.answer).trim() : '',
   }
 }
 
 /**
- * 关卡题目结构：{ level, hintText, wordArray, answerLength, imageUrl, isReviewMode, answer? }
+ * 初级关卡题目：{ hintText, wordArray, answerLength, imageUrl, imageUrlTop?, imageUrlBottom?, keywordHint?, topCaption?, bottomCaption?, ... }
  */
 export function getLevelPuzzle(levelNum) {
   const url = `${LEVEL_DATA_BASE}/${levelNum}.json`
   return request({ url, method: 'GET' })
     .then((res) => (res.data && normalizePuzzle(res.data)))
-    .catch(() => FALLBACK_PUZZLE)
+    .catch(() => ({ ...FALLBACK_PUZZLE }))
+}
+
+function fetchMidIssues() {
+  if (midIssueCache) return Promise.resolve(midIssueCache)
+  if (midIssuePromise) return midIssuePromise
+
+  midIssuePromise = request({ url: MID_ISSUE_URL, method: 'GET' })
+    .then((res) => {
+      const list = Array.isArray(res.data) ? res.data : []
+      midIssueCache = list
+      const levels = list
+        .map((it) => (it && it.level != null ? parseInt(it.level, 10) : NaN))
+        .filter((n) => Number.isFinite(n))
+        .sort((a, b) => a - b)
+
+      midLevels = Array.from(new Set(levels))
+      const max = midLevels.length ? midLevels[midLevels.length - 1] : 0
+      midMaxLevel = max || 0
+      return list
+    })
+    .catch(() => {
+      midIssueCache = []
+      midMaxLevel = 0
+      midLevels = []
+      return []
+    })
+
+  return midIssuePromise
+}
+
+export function getMidMaxLevel() {
+  return midMaxLevel || 0
+}
+
+export function getMidLevelList() {
+  return Array.isArray(midLevels) ? midLevels : []
+}
+
+/**
+ * 中级：获取当前 level 的“下一个真实存在的 level”（与 issue2.json 完全一致）
+ */
+export function getMidNextLevel(levelNum) {
+  const current = parseInt(levelNum, 10)
+  return fetchMidIssues().then(() => {
+    const levels = getMidLevelList()
+    const idx = levels.indexOf(current)
+    if (idx < 0) return null
+    return idx + 1 < levels.length ? levels[idx + 1] : null
+  })
+}
+
+/**
+ * 中级：从 issue2.json 中找到 level 对应条目，并拼出上下两张图
+ */
+export function getMidLevelPuzzle(levelNum) {
+  const lv = parseInt(levelNum, 10)
+  return fetchMidIssues().then((list) => {
+    const item = list.find((x) => x && parseInt(x.level, 10) === lv)
+    if (!item) {
+      return { ...FALLBACK_PUZZLE, answerLength: 3, keywordHint: '', imageUrlTop: '', imageUrlBottom: '' }
+    }
+
+    const answerLength = Math.max(1, parseInt(item.answerLength, 10) || 3)
+    return normalizePuzzle({
+      hintText: item.tips || '',
+      topCaption: item.question ? `这是${item.question}` : '',
+      bottomCaption: `这是${'_'.repeat(answerLength)}`,
+      keywordHint: item.answerType || '',
+      wordArray: [],
+      answerLength,
+      imageUrlTop: `${MID_IMAGE_BASE}/w${lv}-1.png`,
+      imageUrlBottom: `${MID_IMAGE_BASE}/w${lv}-2.png`,
+      isReviewMode: false,
+      answer: item.answer != null ? String(item.answer).trim() : '',
+    })
+  })
 }

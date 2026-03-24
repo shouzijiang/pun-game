@@ -1,6 +1,6 @@
 // API 请求工具类
 import { API_BASE_URL } from '../config'
-import { handleLoginExpired } from './auth'
+import { forceLogin, handleLoginExpired } from './auth'
 
 const BASE_URL = API_BASE_URL
 
@@ -47,9 +47,23 @@ function requestWithHttp(options) {
           if (res.data.code === 200) {
             resolve(res.data.data)
           } else if (res.data.code === 401) {
-            // token 失效，显示提示并重新加载小程序
-            handleLoginExpired()
-            reject(new Error(res.data.message || '登录已过期，请重新登录'))
+            // token 失效：先尝试“强制重新登录 + 重试原请求（最多一次）”
+            // 避免每次401都让用户手动再点一次
+            if (options && options._authRetried) {
+              handleLoginExpired()
+              reject(new Error(res.data.message || '登录已过期，请重新登录'))
+              return
+            }
+
+            forceLogin()
+              .then(() => {
+                const retryOptions = { ...(options || {}), _authRetried: true }
+                requestWithHttp(retryOptions).then(resolve).catch(reject)
+              })
+              .catch(() => {
+                handleLoginExpired()
+                reject(new Error(res.data.message || '登录已过期，请重新登录'))
+              })
           } else {
             reject(new Error(res.data.message || '请求失败'))
           }
@@ -108,19 +122,24 @@ export const api = {
   /**
    * 提交答案
    */
-  submitAnswer(level, userAnswer) {
+  /**
+   * @param {number} level
+   * @param {string[]} userAnswer
+   * @param {Record<string, unknown>} [extra] 例如 { gameTier: 'mid' } 供后端区分题库
+   */
+  submitAnswer(level, userAnswer, extra = {}) {
     return request({
       url: '/pun/answer/submit',
       method: 'POST',
-      data: { level, userAnswer },
+      data: { level, userAnswer, ...extra },
     })
   },
 
   /**
    * 当前用户关卡进度（历史答题情况）
    */
-  getLevelProgress() {
-    return request({ url: '/pun/level/progress', method: 'GET' })
+  getLevelProgress(params = {}) {
+    return request({ url: `/pun/level/progress${buildQueryString(params)}`, method: 'GET' })
   },
 
   /**
