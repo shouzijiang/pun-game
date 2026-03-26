@@ -5,18 +5,17 @@
       <view class="bg-dots" />
     </view>
 
-    <view class="nav-bar">
-      <view class="nav-btn" @click="back">
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px' }"></view>
+
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+      <view class="nav-btn" @click="back" :style="{ width: menuButtonHeight + 'px', height: menuButtonHeight + 'px' }">
         <text class="nav-icon">🏠</text>
       </view>
       <view class="nav-center">
         <text class="nav-title">{{ cocreateId ? '共创关卡' : '第' + level + '关' }}</text>
         <text class="nav-star">⭐</text>
       </view>
-      <button class="btn-help" open-type="share" @click="help">
-        <text class="help-icon">💬</text>
-        <text class="help-text">求助</text>
-      </button>
     </view>
 
     <view class="card">
@@ -33,20 +32,31 @@
     </view>
 
     <view class="answer-row">
-      <view class="answer-slots">
-        <view
-          v-for="i in answerLen"
-          :key="i"
-          :class="['slot', { 'slot-error': isSlotError(i - 1), 'slot-shake': slotShake }]"
-          @click="removeAt(i - 1)"
-        >
-          {{ answerChars[i - 1] || '' }}
+      <view class="answer-left">
+        <view class="answer-slots">
+          <view
+            v-for="i in answerLen"
+            :key="i"
+            :class="['slot', { 'slot-error': isSlotError(i - 1), 'slot-shake': slotShake }]"
+            @click="removeAt(i - 1)"
+          >
+            {{ answerChars[i - 1] || '' }}
+          </view>
         </view>
+      </view>
+
+      <view class="answer-right">
+        <button class="btn-help-inline" open-type="share" @click="help">
+          <text class="help-icon">💬</text>
+          <text class="help-text">求助</text>
+        </button>
+        <!-- 答案按钮预留位：后续你可以在这里加“提交/确认”按钮 -->
+        <!-- <view class="answer-btn-placeholder" /> -->
       </view>
     </view>
 
     <view class="stuck-tip">
-      <text>若通过后没进入下一关，请点击右上角重新游戏</text>
+      <text>若通过后没进入下一关，请点击左上角重新游戏</text>
     </view>
 
     <view class="chars-wrap">
@@ -66,8 +76,8 @@
         <view class="success-icon-wrap">
           <text class="success-icon">🎉</text>
         </view>
-        <text class="success-title">回答正确！</text>
-        <text class="success-subtitle">太棒了，脑洞大开</text>
+        <text class="success-title">回答正确~</text>
+        <!-- <text class="success-subtitle">太棒了，脑洞大开</text> -->
       </view>
     </view>
   </view>
@@ -78,6 +88,9 @@ import { ref } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import { getLevelPuzzle } from '../../data/levels'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
 const level = ref(1)
 const cocreateId = ref(0)
@@ -243,7 +256,6 @@ onShareAppMessage(() => {
 .page {
   min-height: 100vh;
   position: relative;
-  padding-top: 12vh;
   padding-bottom: 48rpx;
   padding-left: 40rpx;
   padding-right: 40rpx;
@@ -275,13 +287,10 @@ onShareAppMessage(() => {
   align-items: center;
   justify-content: center; /* 居中整个导航栏的内容 */
   margin-bottom: 32rpx;
-  min-height: 88rpx;
 }
 .nav-btn {
   position: absolute; /* 绝对定位到左侧，不影响标题居中 */
   left: 0;
-  width: 72rpx;
-  height: 72rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #5c534d;
@@ -376,13 +385,30 @@ onShareAppMessage(() => {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 28rpx 0;
+  justify-content: space-between;
+  gap: 22rpx;
+  padding: 28rpx 24rpx;
   margin-bottom: 32rpx;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 24rpx;
   box-shadow: 0 6rpx 20rpx rgba(180, 120, 100, 0.08);
   border: 2rpx solid rgba(200, 160, 140, 0.2);
+}
+
+.answer-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.answer-right {
+  width: 150rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22rpx;
 }
 .stuck-tip {
   position: relative;
@@ -399,6 +425,32 @@ onShareAppMessage(() => {
   justify-content: center;
   align-items: center;
   gap: 18rpx;
+}
+
+.btn-help-inline {
+  position: relative;
+  margin: 0;
+  padding: 18rpx 18rpx;
+  border: none;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.95);
+  color: #6b5b52;
+  font-size: inherit;
+  line-height: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.08);
+  border: 2rpx solid rgba(200, 160, 140, 0.2);
+}
+
+.answer-btn-placeholder {
+  width: 100%;
+  min-height: 86rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2rpx dashed rgba(180, 160, 140, 0.25);
 }
 .slot {
   width: 76rpx;

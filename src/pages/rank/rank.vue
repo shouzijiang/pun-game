@@ -6,26 +6,29 @@
       <view class="bg-glow" />
     </view>
 
-    <view class="nav-bar">
-      <view class="nav-btn" @click="back">
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px' }"></view>
+
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+      <view class="nav-btn" @click="back" :style="{ width: menuButtonHeight + 'px', height: menuButtonHeight + 'px' }">
         <text class="nav-icon">🏠</text>
       </view>
       <view class="nav-center">
         <text class="nav-title">排行榜</text>
       </view>
-      <view class="nav-btn nav-btn-refresh" @click="refresh">
+      <!-- <view class="nav-btn nav-btn-refresh" @click="refresh">
         <text class="nav-icon">↻</text>
-      </view>
+      </view> -->
     </view>
 
     <view class="tabs-wrap">
       <view class="tabs">
-        <view :class="['tab', { active: currentTab === 'beginner' }]" @click="switchTab('beginner')">初级榜</view>
         <view :class="['tab', { active: currentTab === 'mid' }]" @click="switchTab('mid')">中级榜</view>
+        <view :class="['tab', { active: currentTab === 'beginner' }]" @click="switchTab('beginner')">初级榜</view>
       </view>
     </view>
 
-    <scroll-view class="list" scroll-y>
+    <scroll-view v-if="!loading" class="list" scroll-y>
       <view
         v-for="(item, index) in list"
         :key="item.user_id"
@@ -51,6 +54,9 @@
         </view>
       </view>
     </scroll-view>
+    <view v-else class="list list--loading">
+      <text class="loading-text">加载中…</text>
+    </view>
   </view>
 </template>
 
@@ -58,11 +64,16 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
 const list = ref([])
-const currentTab = ref('beginner')
+const loading = ref(false)
+const currentTab = ref('mid')
 
 function loadRank() {
+  loading.value = true
   const params = { page: 1, page_size: 100 }
   if (currentTab.value === 'mid') {
     params.gameTier = 'mid'
@@ -79,6 +90,9 @@ function loadRank() {
     })
     .catch(() => {
       list.value = []
+    })
+    .finally(() => {
+      loading.value = false
     })
 }
 
@@ -105,7 +119,6 @@ function switchTab(tab) {
   min-height: 100vh;
   position: relative;
   padding-bottom: 48rpx;
-  padding-top: 6vh;
   padding-left: 40rpx;
   padding-right: 40rpx;
   box-sizing: border-box;
@@ -146,13 +159,10 @@ function switchTab(tab) {
   align-items: center;
   justify-content: center; /* 居中标题 */
   margin-bottom: 40rpx;
-  min-height: 88rpx;
 }
 .nav-btn {
   position: absolute;
   left: 0;
-  width: 72rpx;
-  height: 72rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #5c534d;
@@ -214,11 +224,20 @@ function switchTab(tab) {
 .list {
   position: relative;
   z-index: 2;
-  height: calc(100vh - 280rpx);
+  height: calc(100vh - 380rpx);
   box-sizing: border-box;
   .uni-scroll-view {
     width: 100%;
   }
+}
+.list--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loading-text {
+  font-size: 28rpx;
+  color: #a89f98;
 }
 .item {
   background: rgba(255, 255, 255, 0.9);

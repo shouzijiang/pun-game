@@ -5,12 +5,14 @@
       <view class="bg-dots" />
     </view>
 
-    <view class="nav-bar">
-      <view class="nav-btn" @click="back">
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px' }"></view>
+
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+      <view class="nav-btn" @click="back" :style="{ width: menuButtonHeight + 'px', height: menuButtonHeight + 'px' }">
         <text class="nav-icon">‹</text>
       </view>
       <text class="nav-title">上传关卡</text>
-      <view class="nav-placeholder" />
     </view>
 
     <view class="form-scroll">
@@ -114,6 +116,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
 const form = ref({
   answer: '',
@@ -261,7 +266,6 @@ function submit() {
 .page {
   min-height: 100vh;
   position: relative;
-  padding-top: 12vh;
   padding-bottom: 40rpx;
   box-sizing: border-box;
 }
@@ -289,12 +293,13 @@ function submit() {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 40rpx 24rpx;
+  justify-content: center; /* 居中标题 */
+  padding: 0 40rpx;
+  margin-bottom: 24rpx;
 }
 .nav-btn {
-  width: 72rpx;
-  height: 72rpx;
+  position: absolute;
+  left: 40rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #5c534d;
@@ -311,7 +316,6 @@ function submit() {
   color: #3d3530;
   letter-spacing: 0.06em;
 }
-.nav-placeholder { width: 72rpx; }
 
 .form-scroll {
   position: relative;

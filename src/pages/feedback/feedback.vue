@@ -5,8 +5,11 @@
       <view class="bg-dots" />
     </view>
 
-    <view class="nav-bar">
-      <view class="nav-btn" @click="back">
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px' }"></view>
+
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+      <view class="nav-btn" @click="back" :style="{ width: menuButtonHeight + 'px', height: menuButtonHeight + 'px' }">
         <text class="nav-icon">🏠</text>
       </view>
       <text class="nav-title">意见反馈</text>
@@ -64,6 +67,9 @@
 <script setup>
 import { ref } from 'vue'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
 const typeOptions = [
   { value: '', label: '请选择' },
@@ -122,7 +128,6 @@ function submit() {
   min-height: 100vh;
   position: relative;
   padding-bottom: 80rpx;
-  padding-top: 12vh;
   padding-left: 40rpx;
   padding-right: 40rpx;
   box-sizing: border-box;
@@ -153,13 +158,10 @@ function submit() {
   align-items: center;
   justify-content: center; /* 居中标题 */
   margin-bottom: 48rpx;
-  min-height: 88rpx;
 }
 .nav-btn {
   position: absolute; /* 绝对定位左侧 */
   left: 0;
-  width: 72rpx;
-  height: 72rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #5c534d;

@@ -6,6 +6,12 @@
       <view class="bg-glow" />
     </view>
 
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px', width: '100%' }"></view>
+
+    <!-- 顶部留白，代替原来的 padding-top -->
+    <view :style="{ height: Math.max(10, navBarHeight - 10) + 'px', width: '100%' }"></view>
+
     <!-- 用户头像与昵称（微信内可点击授权/修改，保存到本地与后端） -->
     <view class="user-header">
       <!-- #ifdef MP-WEIXIN -->
@@ -86,15 +92,24 @@
     <view class="stats">
       <text class="stats-text">已有 {{ stats.players }} 位好友在玩 · 累计 {{ stats.answers }} 次答题</text>
     </view>
+
+    <!-- 悬浮反馈按钮：从“我的关卡”移到首页 -->
+    <view class="floating-feedback" @click="goFeedback">
+      <text class="floating-feedback-icon">💬</text>
+      <text class="floating-feedback-text">反馈</text>
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getCurrentLevel } from '../../data/levels'
-import { getUserInfo } from '../../utils/auth'
+import { getCurrentLevel, loadMidLevelList, pickMidLevelFromProgress } from '../../data/levels'
+import { getUserInfo, wechatLogin } from '../../utils/auth'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight } = useNavBar()
 
 const stats = ref({ players: 28, answers: 45684 })
 const userInfo = ref(null)
@@ -175,7 +190,18 @@ async function saveNickname(nickname) {
   }
 }
 
-onShow(() => loadUserInfo())
+onShow(async () => {
+  // #ifdef MP-WEIXIN
+  try {
+    // 确保登录完成后再读取本地 userInfo，避免 onShow 过早读取
+    await wechatLogin()
+  } catch (e) {
+    // 登录失败也不阻断页面展示
+    console.warn('wechatLogin 失败', e)
+  }
+  // #endif
+  loadUserInfo()
+})
 
 function goRank() {
   uni.navigateTo({ url: '/pages/rank/rank' })
@@ -183,21 +209,35 @@ function goRank() {
 function goLevels() {
   uni.navigateTo({ url: '/pages/levels/levels' })
 }
+function goFeedback() {
+  uni.navigateTo({ url: '/pages/feedback/feedback' })
+}
 function goCocreate() {
   // uni.navigateTo({ url: '/pages/cocreate/list' })
   uni.showToast({ title: '敬请期待~', icon: 'none' })
 }
-function startGameMid() {
-  const goPlay = (level) => { uni.navigateTo({ url: `/pages/playMid/playMid?level=${level}` }) }
-  api.getLevelProgress({ gameTier: 'mid' })
-    .then((data) => {
-      if (data.totalLevels > 0 && data.currentLevel >= data.totalLevels) {
-        uni.showToast({ title: '恭喜您已通关中级,关卡持续更新中,敬请期待~', icon: 'none' })
-        return
-      }
-      goPlay(data.currentLevel != null ? data.currentLevel : 0)
-    })
-    .catch(() => goPlay(0))
+async function startGameMid() {
+  const goPlay = (lv) => { uni.navigateTo({ url: `/pages/playMid/playMid?level=${lv}` }) }
+  try {
+    const data = await api.getLevelProgress({ gameTier: 'mid' })
+    await loadMidLevelList()
+    const total =
+      data.midTotalLevels != null ? Number(data.midTotalLevels)
+        : data.totalLevels != null ? Number(data.totalLevels)
+          : 0
+    const curComplete =
+      data.midCurrentLevel != null ? Number(data.midCurrentLevel)
+        : data.currentLevel != null ? Number(data.currentLevel)
+          : null
+    if (total > 0 && curComplete != null && Number.isFinite(curComplete) && curComplete >= total) {
+      uni.showToast({ title: '恭喜您已通关中级,关卡持续更新中,敬请期待~', icon: 'none' })
+      return
+    }
+    const lv = pickMidLevelFromProgress(data)
+    goPlay(lv != null && lv > 0 ? lv : 0)
+  } catch {
+    goPlay(0)
+  }
 }
 
 function startGame() {
@@ -223,7 +263,6 @@ function startGame() {
   position: relative;
   overflow: hidden;
   padding: 0 40rpx;
-  padding-top: 10vh; /* 稍微上移一点，给下面留出更多空间 */
   box-sizing: border-box;
 }
 
@@ -550,4 +589,34 @@ function startGame() {
   padding: 8rpx 24rpx;
   border-radius: 100rpx;
 }
+
+.floating-feedback {
+  position: fixed;
+  left: 30rpx;
+  bottom: 120rpx;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  width: 98rpx;
+  height: 98rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2rpx solid rgba(200, 160, 140, 0.25);
+  box-shadow: 0 10rpx 30rpx rgba(180, 120, 100, 0.18);
+}
+
+.floating-feedback-icon {
+  font-size: 42rpx;
+  line-height: 1;
+}
+
+.floating-feedback-text {
+  font-size: 24rpx;
+  color: #6b5b52;
+  font-weight: 600;
+}
+
 </style>

@@ -6,12 +6,15 @@
       <view class="bg-glow" />
     </view>
 
-    <view class="nav-bar">
-      <view class="nav-btn" @click="back">
-        <text class="nav-icon">‹</text>
+    <!-- 顶部状态栏占位 -->
+    <view :style="{ height: statusBarHeight + 'px' }"></view>
+
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+      <view class="nav-btn" @click="back" :style="{ width: menuButtonHeight + 'px', height: menuButtonHeight + 'px' }">
+        <text class="nav-icon">🏠</text>
       </view>
       <text class="nav-title">共创列表</text>
-      <view class="btn-upload" @click="goUpload">
+      <view class="btn-upload" @click="goUpload" :style="{ height: menuButtonHeight + 'px' }">
         <text class="btn-upload-text">上传关卡</text>
       </view>
     </view>
@@ -60,6 +63,9 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { api } from '../../utils/api'
+import { useNavBar } from '../../composables/useNavBar'
+
+const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
 const list = ref([])
 const loading = ref(false)
@@ -127,7 +133,6 @@ function play(id) {
 .page {
   min-height: 100vh;
   position: relative;
-  padding-top: 12vh;
   padding-bottom: 40rpx;
   padding-left: 40rpx;
   padding-right: 40rpx;
@@ -167,12 +172,12 @@ function play(id) {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* 居中标题 */
   margin-bottom: 32rpx;
 }
 .nav-btn {
-  width: 72rpx;
-  height: 72rpx;
+  position: absolute;
+  left: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   color: #5c534d;
@@ -182,7 +187,7 @@ function play(id) {
   box-shadow: 0 4rpx 16rpx rgba(180, 120, 100, 0.1);
   border: 2rpx solid rgba(200, 160, 140, 0.25);
 }
-.nav-icon { font-size: 44rpx; font-weight: bold; line-height: 1; }
+.nav-icon { font-size: 36rpx; line-height: 1; }
 .nav-title {
   font-size: 38rpx;
   font-weight: 700;
@@ -190,7 +195,12 @@ function play(id) {
   letter-spacing: 0.06em;
 }
 .btn-upload {
-  padding: 18rpx 28rpx;
+  position: absolute;
+  right: 0;
+  padding: 0 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(145deg, #d45d4a 0%, #c04a38 100%);
   color: #fff;
   border-radius: 24rpx;

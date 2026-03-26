@@ -137,6 +137,37 @@ export function getMidLevelList() {
 }
 
 /**
+ * 中级：确保 issue2.json 的中级关卡列表已加载完成
+ * 用于“我的关卡”这种需要完整列表渲染的场景。
+ */
+export async function loadMidLevelList() {
+  await fetchMidIssues()
+  return getMidLevelList()
+}
+
+/**
+ * 根据 /pun/level/progress?gameTier=mid 的返回，解析当前应玩的真实关卡 level（issue2 中的 level 数字）。
+ * 兼容：midCurrentLevel / currentLevel、以及仅用 midCurrentIndex 对应有序列表下标。
+ */
+export function pickMidLevelFromProgress(data, orderedLevels) {
+  const list = Array.isArray(orderedLevels) ? orderedLevels : getMidLevelList()
+  if (!data) return list.length ? list[0] : null
+
+  let lv =
+    data.midCurrentLevel != null ? Number(data.midCurrentLevel)
+      : data.currentLevel != null ? Number(data.currentLevel)
+        : null
+  if (Number.isFinite(lv) && lv > 0) return lv
+
+  if (data.midCurrentIndex != null && list.length) {
+    const idx = Number(data.midCurrentIndex)
+    if (Number.isFinite(idx) && idx >= 0 && idx < list.length) return list[idx]
+  }
+
+  return list.length ? list[0] : null
+}
+
+/**
  * 中级：获取当前 level 的“下一个真实存在的 level”（与 issue2.json 完全一致）
  */
 export function getMidNextLevel(levelNum) {
