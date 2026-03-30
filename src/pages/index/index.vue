@@ -94,6 +94,10 @@
       <text class="stats-text">已有 {{ stats.players }} 位好友在玩 · 累计 {{ stats.answers }} 次答题</text>
     </view>
 
+    <view class="floating-music" @click.stop="toggleBgm">
+      <text class="floating-feedback-icon">{{ bgmOn ? '🎵' : '🔇' }}</text>
+      <text class="floating-feedback-text">{{ bgmOn ? '音乐' : '静音' }}</text>
+    </view>
     <view class="floating-feedback" @click="goFeedback">
       <text class="floating-feedback-icon">💬</text>
       <text class="floating-feedback-text">反馈</text>
@@ -107,16 +111,34 @@
 
 <script setup>
 import { ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { getCurrentLevel, loadMidLevelList, pickMidLevelFromProgress } from '../../data/levels'
 import { getUserInfo, wechatLogin } from '../../utils/auth'
 import { api } from '../../utils/api'
 import { useNavBar } from '../../composables/useNavBar'
+import {
+  isGameAudioEnabled,
+  setGameAudioEnabled,
+  playBgmHome,
+  stopBgm,
+} from '../../utils/gameAudio'
 
 const { statusBarHeight, navBarHeight } = useNavBar()
 
 const stats = ref({ players: 28, answers: 45684 })
 const userInfo = ref(null)
+const bgmOn = ref(isGameAudioEnabled())
+
+function toggleBgm() {
+  const next = !bgmOn.value
+  bgmOn.value = next
+  setGameAudioEnabled(next)
+  if (next) {
+    playBgmHome()
+  } else {
+    stopBgm()
+  }
+}
 
 function loadUserInfo() {
   const info = getUserInfo()
@@ -205,6 +227,14 @@ onShow(async () => {
   }
   // #endif
   loadUserInfo()
+  bgmOn.value = isGameAudioEnabled()
+  if (bgmOn.value) {
+    playBgmHome()
+  }
+})
+
+onHide(() => {
+  stopBgm()
 })
 
 function goRank() {
@@ -600,7 +630,9 @@ function startGame() {
   border-radius: 100rpx;
 }
 
-.floating-feedback, .floating-forum {
+.floating-music,
+.floating-feedback,
+.floating-forum {
   position: fixed;
   left: 30rpx;
   bottom: 120rpx;
@@ -619,6 +651,10 @@ function startGame() {
 }
 .floating-forum {
   bottom: 230rpx;
+}
+
+.floating-music {
+  bottom: 340rpx;
 }
 
 .floating-feedback-icon {

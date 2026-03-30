@@ -51,6 +51,7 @@
     /* 小程序特有相关 */
     "mp-weixin": {
       "appid": "wxdd00cd978d6f2614",
+      "requiredBackgroundModes": ["audio"],
       "lazyCodeLoading": "requiredComponents",
       "setting": {
           "urlCheck": false,
@@ -91,7 +92,7 @@
           "useCompilerPlugins": false
       },
       "usingComponents": true
-    }
+    },
     "mp-alipay" : {
         "usingComponents" : true
     },

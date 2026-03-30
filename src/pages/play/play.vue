@@ -85,10 +85,11 @@
 
 <script setup>
 import { ref } from 'vue'
-import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
+import { onLoad, onShow, onHide, onShareAppMessage } from '@dcloudio/uni-app'
 import { getLevelPuzzle } from '../../data/levels'
 import { api } from '../../utils/api'
 import { useNavBar } from '../../composables/useNavBar'
+import { playBgmPlay, stopBgm, playCongratsOnce } from '../../utils/gameAudio'
 
 const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
@@ -117,6 +118,14 @@ function isSlotError(index) {
   const fb = feedback.value[index]
   return fb && fb.isCorrect === false
 }
+
+onShow(() => {
+  playBgmPlay()
+})
+
+onHide(() => {
+  stopBgm()
+})
 
 onLoad((opts) => {
   if (opts && opts.cocreateId) {
@@ -192,6 +201,7 @@ async function checkAnswer() {
       : await api.submitAnswer(level.value, userAnswer)
     if (data.isCorrect) {
       showSuccess.value = true
+      playCongratsOnce()
       setTimeout(() => {
         showSuccess.value = false
         if (isCocreate) {

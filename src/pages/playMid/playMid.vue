@@ -13,7 +13,7 @@
         <text class="nav-icon">🏠</text>
       </view>
       <view class="nav-center">
-        <text class="nav-title">中级 · 第{{ level }}关</text>
+        <text class="nav-title">画中寻梗 · 第{{ level }}关</text>
         <text class="nav-star">⭐</text>
       </view>
     </view>
@@ -96,10 +96,11 @@
 
 <script setup>
 import { ref, computed, nextTick } from 'vue'
-import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
+import { onLoad, onShow, onHide, onShareAppMessage } from '@dcloudio/uni-app'
 import { getMidLevelPuzzle, getMidNextLevel, loadMidLevelList, pickMidLevelFromProgress } from '../../data/levels'
 import { api } from '../../utils/api'
 import { useNavBar } from '../../composables/useNavBar'
+import { playBgmPlay, stopBgm, playCongratsOnce } from '../../utils/gameAudio'
 
 const { statusBarHeight, navBarHeight, menuButtonHeight } = useNavBar()
 
@@ -182,6 +183,7 @@ async function checkAnswer() {
     const data = await api.submitAnswer(level.value, userAnswer, { gameTier: 'mid' })
     if (data.isCorrect) {
       showSuccess.value = true
+      playCongratsOnce()
       const nextLevel = await getMidNextLevel(level.value)
       setTimeout(() => {
           showSuccess.value = false
@@ -222,6 +224,14 @@ function help() {
   uni.showToast({ title: '分享给好友一起猜～', icon: 'none' })
   // #endif
 }
+
+onShow(() => {
+  playBgmPlay()
+})
+
+onHide(() => {
+  stopBgm()
+})
 
 onLoad(async (opts) => {
   let lv = opts && opts.level != null && opts.level !== '' ? parseInt(opts.level, 10) : NaN
