@@ -23,8 +23,8 @@
 
     <view class="tabs-wrap">
       <view class="tabs">
-        <view :class="['tab', { active: currentTab === 'mid' }]" @click="switchTab('mid')">中级榜</view>
-        <view :class="['tab', { active: currentTab === 'beginner' }]" @click="switchTab('beginner')">初级榜</view>
+        <view :class="['tab', { active: currentTab === 'mid' }]" @click="switchTab('mid')">画中寻梗榜</view>
+        <view :class="['tab', { active: currentTab === 'beginner' }]" @click="switchTab('beginner')">梗图填词榜</view>
       </view>
     </view>
 

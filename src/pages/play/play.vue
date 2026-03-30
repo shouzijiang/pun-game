@@ -200,7 +200,7 @@ async function checkAnswer() {
           const nextLevel = level.value + 1
           if(nextLevel > 270) {
             uni.navigateTo({ url: `/pages/index/index` })
-            uni.showToast({ title: '恭喜您已通关,关卡持续更新中,敬请期待~', icon: 'none' })
+            uni.showToast({ title: '关卡持续更新中,敬请期待,您可以前往首页关卡继续游玩~', icon: 'none' })
             return
           }
           uni.navigateTo({ url: `/pages/play/play?level=${nextLevel}` })

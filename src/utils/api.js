@@ -226,4 +226,50 @@ export const api = {
       data: { cocreateId, userAnswer },
     })
   },
+
+  /**
+   * 论坛：获取帖子列表（分页）
+   * @param {Object} params - { page?: number, page_size?: number }
+   */
+  getForumList(params = {}) {
+    return request({
+      url: `/pun/forum/list${buildQueryString(params)}`,
+      method: 'GET',
+    })
+  },
+
+  /**
+   * 论坛：发布新帖子
+   * @param {Object} data - { title?: string, content: string }
+   */
+  createForumTopic(data) {
+    return request({
+      url: '/pun/forum/topic/create',
+      method: 'POST',
+      data,
+    })
+  },
+
+  /**
+   * 论坛：获取帖子详情及回复
+   * @param {Object} params - { id: number, page?: number, page_size?: number }
+   */
+  getForumDetail(params = {}) {
+    return request({
+      url: `/pun/forum/detail${buildQueryString(params)}`,
+      method: 'GET',
+    })
+  },
+
+  /**
+   * 论坛：回复帖子/回复评论
+   * @param {Object} data - { topic_id: number, content: string, reply_to_id?: number }
+   */
+  replyForum(data) {
+    return request({
+      url: '/pun/forum/reply/create',
+      method: 'POST',
+      data,
+    })
+  },
 }

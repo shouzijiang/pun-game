@@ -187,7 +187,7 @@ async function checkAnswer() {
           showSuccess.value = false
           if (nextLevel == null) {
             uni.navigateTo({ url: '/pages/index/index' })
-            uni.showToast({ title: '恭喜您已通关中级,关卡持续更新中,敬请期待~', icon: 'none' })
+            uni.showToast({ title: '关卡持续更新中,敬请期待,您可以前往首页关卡继续游玩~', icon: 'none' })
             return
           }
           uni.navigateTo({ url: `/pages/playMid/playMid?level=${nextLevel}` })

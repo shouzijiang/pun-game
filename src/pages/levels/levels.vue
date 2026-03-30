@@ -21,10 +21,10 @@
     <view class="tabs-wrap">
       <view class="tabs">
         <view :class="['tab', { active: tier === 'mid' }]" @click="switchTier('mid')">
-          中级
+          画中寻梗
         </view>
         <view :class="['tab', { active: tier === 'beginner' }]" @click="switchTier('beginner')">
-          初级
+          梗图填词
         </view>
       </view>
     </view>
@@ -138,22 +138,28 @@ function nextPage() {
 function loadProgress() {
   loading.value = true
   if (tier.value === 'mid') {
-    // 中级：后端需要返回 midCurrentLevel / midPassedCount / midTotalLevels（见后端文档）
+    // 中级：仅使用统一字段（totalLevels/passedLevels/currentLevel）
     api.getLevelProgress({ gameTier: 'mid' })
       .then(async (data) => {
         const list = await loadMidLevelList()
         midLevelList.value = list
 
-        const midTotal = data && data.midTotalLevels != null ? data.midTotalLevels : (list.length || 0)
-        const midPassedCount = data && data.midPassedCount != null ? data.midPassedCount : 0
+        const totalRaw = data && data.totalLevels != null ? Number(data.totalLevels) : list.length
+        const normalizedPassed = data && Array.isArray(data.passedLevels)
+          ? data.passedLevels
+            .map((x) => Number(x))
+            .filter((x) => Number.isFinite(x) && list.includes(x))
+          : []
+        const passed = new Set(normalizedPassed)
 
-        const midCurrentLevel = data && data.midCurrentLevel != null
-          ? data.midCurrentLevel
-          : (data && data.midCurrentIndex != null ? list[data.midCurrentIndex] : null)
+        let cur = data && data.currentLevel != null ? Number(data.currentLevel) : null
+        if (!(cur != null && Number.isFinite(cur) && list.includes(cur))) {
+          cur = list.find((id) => !passed.has(id)) ?? null
+        }
 
-        totalLevels.value = midTotal
-        passedSet.value = new Set(list.slice(0, midPassedCount))
-        currentLevel.value = midCurrentLevel
+        totalLevels.value = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : list.length
+        passedSet.value = passed
+        currentLevel.value = cur
       })
       .catch(() => {
         midLevelList.value = []

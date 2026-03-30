@@ -22,6 +22,13 @@
       }
     },
     {
+      "path": "pages/forum/forum",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "闲聊"
+      }
+    },
+    {
       "path": "pages/play/play",
       "style": {
         "navigationStyle": "custom",

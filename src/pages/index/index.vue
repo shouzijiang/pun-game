@@ -67,14 +67,15 @@
     <view class="start-wrap">
       <view class="btn-start btn-start-2" @click="startGameMid">
         <text class="btn-start-icon">🔥</text>
-        <text class="btn-start-text">开始游戏(中级)</text>
+        <text class="btn-start-text">开始(画中寻梗)</text>
       </view>
       <view class="btn-start" @click="startGame">
         <text class="btn-start-icon">🌱</text>
-        <text class="btn-start-text">开始游戏(初级)</text>
+        <text class="btn-start-text">开始(梗图填词)</text>
       </view>
-      <view class="btn-cocreate" @click="goCocreate">
-        <text class="btn-cocreate-text">进入共创</text>
+      <view class="btn-cocreate">
+        <text class="btn-cocreate-text" @click="goCocreate">进入共创</text>
+        <text class="btn-cocreate-text" @click="goCocreate">好友1V1</text>
       </view>
     </view>
 
@@ -93,10 +94,13 @@
       <text class="stats-text">已有 {{ stats.players }} 位好友在玩 · 累计 {{ stats.answers }} 次答题</text>
     </view>
 
-    <!-- 悬浮反馈按钮：从“我的关卡”移到首页 -->
     <view class="floating-feedback" @click="goFeedback">
       <text class="floating-feedback-icon">💬</text>
       <text class="floating-feedback-text">反馈</text>
+    </view>
+    <view class="floating-forum" @click="goForum">
+      <text class="floating-feedback-icon">💬</text>
+      <text class="floating-feedback-text">闲聊</text>
     </view>
   </view>
 </template>
@@ -209,6 +213,9 @@ function goRank() {
 function goLevels() {
   uni.navigateTo({ url: '/pages/levels/levels' })
 }
+function goForum() {
+  uni.navigateTo({ url: '/pages/forum/forum' })
+}
 function goFeedback() {
   uni.navigateTo({ url: '/pages/feedback/feedback' })
 }
@@ -220,17 +227,18 @@ async function startGameMid() {
   const goPlay = (lv) => { uni.navigateTo({ url: `/pages/playMid/playMid?level=${lv}` }) }
   try {
     const data = await api.getLevelProgress({ gameTier: 'mid' })
-    await loadMidLevelList()
-    const total =
-      data.midTotalLevels != null ? Number(data.midTotalLevels)
-        : data.totalLevels != null ? Number(data.totalLevels)
-          : 0
-    const curComplete =
-      data.midCurrentLevel != null ? Number(data.midCurrentLevel)
-        : data.currentLevel != null ? Number(data.currentLevel)
-          : null
-    if (total > 0 && curComplete != null && Number.isFinite(curComplete) && curComplete >= total) {
-      uni.showToast({ title: '恭喜您已通关中级,关卡持续更新中,敬请期待~', icon: 'none' })
+    const list = await loadMidLevelList()
+    const totalRaw = data && data.totalLevels != null ? Number(data.totalLevels) : list.length
+    const total = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : list.length
+    const passedCount = data && Array.isArray(data.passedLevels)
+      ? new Set(
+        data.passedLevels
+          .map((x) => Number(x))
+          .filter((x) => Number.isFinite(x) && list.includes(x))
+      ).size
+      : 0
+    if (total > 0 && passedCount >= total) {
+      uni.showToast({ title: '关卡持续更新中,敬请期待,您可以前往我的关卡继续游玩~', icon: 'none' })
       return
     }
     const lv = pickMidLevelFromProgress(data)
@@ -245,7 +253,7 @@ function startGame() {
   api.getLevelProgress()
     .then((data) => {
       if(data.currentLevel >= 270) {
-        uni.showToast({ title: '恭喜您已通关,关卡持续更新中,敬请期待~', icon: 'none' })
+        uni.showToast({ title: '关卡持续更新中,敬请期待,您可以前往我的关卡继续游玩~', icon: 'none' })
         return
       }
       goPlay(data.currentLevel != null ? data.currentLevel : 1)
@@ -517,24 +525,26 @@ function startGame() {
 .btn-cocreate {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28rpx 48rpx;
-  background: linear-gradient(to bottom, #ffffff, #f1f5f9);
-  border-radius: 32rpx;
-  border: 4rpx solid #fff;
-  box-shadow: 0 12rpx 24rpx rgba(100, 140, 200, 0.15), 0 8rpx 0 #cbd5e1;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   transition: all 0.1s;
-}
-.btn-cocreate:active {
-  transform: translateY(6rpx);
-  box-shadow: 0 4rpx 12rpx rgba(100, 140, 200, 0.15), 0 2rpx 0 #cbd5e1;
 }
 .btn-cocreate-text {
   font-size: 32rpx;
   font-weight: 800;
   color: #475569;
   letter-spacing: 0.08em;
+  // width: 45%;
+  background: linear-gradient(to bottom, #ffffff, #f1f5f9);
+  border-radius: 32rpx;
+  border: 4rpx solid #fff;
+  padding: 28rpx 40rpx;
+  box-shadow: 0 12rpx 24rpx rgba(100, 140, 200, 0.15), 0 8rpx 0 #cbd5e1;
+}
+.btn-cocreate-text:active {
+  transform: translateY(6rpx);
+  box-shadow: 0 4rpx 12rpx rgba(100, 140, 200, 0.15), 0 2rpx 0 #cbd5e1;
 }
 
 .top-actions {
@@ -590,7 +600,7 @@ function startGame() {
   border-radius: 100rpx;
 }
 
-.floating-feedback {
+.floating-feedback, .floating-forum {
   position: fixed;
   left: 30rpx;
   bottom: 120rpx;
@@ -606,6 +616,9 @@ function startGame() {
   background: rgba(255, 255, 255, 0.92);
   border: 2rpx solid rgba(200, 160, 140, 0.25);
   box-shadow: 0 10rpx 30rpx rgba(180, 120, 100, 0.18);
+}
+.floating-forum {
+  bottom: 230rpx;
 }
 
 .floating-feedback-icon {
